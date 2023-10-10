@@ -2,7 +2,6 @@ from datetime import datetime
 
 import pandas as pd
 from interface import PluginItems
-from pandas.core.series import Series
 from rich.console import Console
 from seatable_api import Base
 from utils import generate_activity_tag
@@ -29,28 +28,49 @@ def update_old_entry(
         status=str(db["Status"]) if db["Status"] else None,
     )
     error = bool(db["Error"]) if db["Error"] else False
+
+    database_properties = {
+        "ID": plugin_in_db.id,
+        "Name": plugin_in_db.name,
+        "Description": plugin_in_db.description,
+        "Github Link": f"https://github.com/{plugin_in_db.repo}",
+        "Author": plugin_in_db.author,
+        "Funding URL": plugin_in_db.fundingUrl,
+        "Mobile friendly": not plugin_in_db.isDesktopOnly,
+        "Last Commit Date": plugin_in_db.last_commit_date,
+        "ETAG": plugin_in_db.etag,
+        "Status": plugin_in_db.status,
+        "Error": error,
+        "Plugin Available": True,
+    }
+    to_update = False
     # check if the plugin has changed
     if (plugin_in_db.author != plugin.author) and plugin.author:
         console.log(f"Mismatched author: {plugin_in_db.author} != {plugin.author}")
-        database_update(seatable, db, plugin.author, "Author")
+        to_update = True
+        database_properties["Author"] = plugin.author
 
     if (plugin_in_db.description != plugin.description) and plugin.description:
         console.log(
             f"Mismatched description: {plugin_in_db.description} != {plugin.description}"
         )
-        database_update(seatable, db, plugin.description, "Description")
+        to_update = True
+        database_properties["Description"] = plugin.description
     if (plugin_in_db.fundingUrl != plugin.fundingUrl) and plugin.fundingUrl:
         console.log(
             f"Mismatched fundingUrl: {plugin_in_db.fundingUrl} != {plugin.fundingUrl}"
         )
-        database_update(seatable, db, plugin.fundingUrl, "Funding URL")
+        to_update = True
+        database_properties["Funding URL"] = plugin.fundingUrl
 
     if (plugin_in_db.isDesktopOnly != plugin.isDesktopOnly) and not error:
         console.log(
             f"Mismatched isDesktopOnly: {plugin_in_db.isDesktopOnly} != {plugin.isDesktopOnly}"
         )
         # not that the value is invert; if the plugin is mobile friendly, the value is False
-        database_update(seatable, db, not plugin.isDesktopOnly, "Mobile friendly")
+        to_update = True
+        database_properties["Mobile friendly"] = not plugin.isDesktopOnly
+
     if plugin_in_db.last_commit_date != plugin.last_commit_date:
         console.log(
             f"Mismatched last_commit_date: {plugin_in_db.last_commit_date} != {plugin.last_commit_date}"
@@ -58,21 +78,18 @@ def update_old_entry(
         last_commit_date = plugin.last_commit_date
         if isinstance(last_commit_date, datetime):
             last_commit_date = last_commit_date.isoformat()
-        database_update(seatable, db, last_commit_date, "Last Commit Date")
+        database_properties["Last Commit Date"] = last_commit_date
     if (plugin_in_db.etag != plugin.etag) and plugin.etag:
-        database_update(seatable, db, plugin.etag, "ETAG")
+        console.log(f"Mismatched etag: {plugin_in_db.etag} != {plugin.etag}")
+        to_update = True
+        database_properties["ETAG"] = plugin.etag
     status = generate_activity_tag(plugin)
     if (plugin_in_db.status != status) and (
         plugin_in_db.status != "MAINTENANCE" or plugin.status != "ARCHIVED"
     ):
         console.log(f"Mismatched status: {plugin_in_db.status} != {status}")
-        database_update(seatable, db, status, "Status")
-
-
-def database_update(
-    seatable: Base,
-    database: Series,
-    value: any,  # type: ignore
-    column: str,
-) -> None:
-    seatable.update_row("Plugins", database["_id"], {column: value})
+        to_update = True
+        database_properties["Status"] = status
+    if to_update:
+        console.log(f"Updating {plugin_in_db.name}")
+        seatable.update_row("Plugins", db["_id"], database_properties)
