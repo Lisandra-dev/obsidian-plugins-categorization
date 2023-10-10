@@ -66,22 +66,22 @@ def get_repository_information(
     try:
         # call the commits info using octokit + the etag from the database
         # if the etag is not None
+        # no support for etag in GithubPy, use request as fallback
+        owner = plugin.repo.split("/")[0]
+        repo = plugin.repo.split("/")[1]
+        url = f"https://api.github.com/repos/{owner}/{repo}/commits"
+        header = {
+            "Accept": "application/vnd.github.v3+json",
+            "Authorization": f"Bearer {os.getenv("GITHUB_TOKEN")}",
+            "X-GitHub-Api-Version": "2022-11-28",
+        }
         if etag:
-            # no support for etag in GithubPy, use request as fallback
-            owner = plugin.repo.split("/")[0]
-            repo = plugin.repo.split("/")[1]
-            url = f"https://api.github.com/repos/{owner}/{repo}/commits"
-            header = {
-                "Accept": "application/vnd.github.v3+json",
-                "If-None-Match": etag,
-                "Authorization": f"Bearer ${os.getenv("GITHUB_TOKEN")}",
-                "X-GitHub-Api-Version": "2022-11-28",
-            }
-            response = requests.get(url, headers=header)
-            if response.status_code == 200:  # noqa: PLR2004
-                data = response.json()
-                last_commit_date = data[0]["commit"]["author"]["date"]
-                etag = response.headers["ETag"]
+            header["If-None-Match"] = etag
+        response = requests.get(url, headers=header)
+        if response.status_code == 200:  # noqa: PLR2004
+            data = response.json()
+            last_commit_date = data[0]["commit"]["author"]["date"]
+            etag = response.headers["ETag"].replace("W/", "")
     except Exception as e:
         print(e)
     return RepositoryInformationDate(last_commit_date=last_commit_date, etag=etag)
