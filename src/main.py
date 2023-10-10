@@ -52,7 +52,7 @@ def main() -> None:
     console.log(f"Found {len(db)} plugins in the database")
 
     with console.status("[bold green]Fetching data from GitHub", spinner="dots"):
-        all_plugins = get_raw_data(octokit, commits_from_db, max_length=max_length)  # noqa
+        all_plugins = get_raw_data(commits_from_db, max_length=max_length)  # noqa
     console.log(f"Found {len(all_plugins)} plugins on GitHub")
     if dev:
         test_plugin = {

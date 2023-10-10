@@ -6,7 +6,6 @@ from datetime import datetime
 from typing import Optional
 
 import requests
-from github import Github
 from interface import EtagPlugins, Manifest, PluginItems, RepositoryInformationDate
 
 
@@ -26,7 +25,7 @@ def manifest(plugin: PluginItems) -> Manifest:
 
 
 def get_raw_data(
-    octokit: Github, commit_date: list[EtagPlugins], max_length: Optional[int] = None
+    commit_date: list[EtagPlugins], max_length: Optional[int] = None
 ) -> list[PluginItems]:
     url = "https://raw.githubusercontent.com/obsidianmd/obsidian-releases/master/community-plugins.json"
     content = urllib.request.urlopen(url).read()
@@ -37,9 +36,15 @@ def get_raw_data(
         plugin_manifest = manifest(plugin)
         plugin.isDesktopOnly = plugin_manifest.isDesktopOnly
         plugin.fundingUrl = first_funding_url(plugin_manifest)
-        db_plugin_date = [x for x in commit_date if x.plugin_id == plugin.id][0]
+        db_plugin_date = [x for x in commit_date if x.plugin_id == plugin.id]
+        etag = None
+        last_commit_date = None
+        if len(db_plugin_date) > 0:
+            db_plugin_date = db_plugin_date[0]
+            etag = db_plugin_date.etag
+            last_commit_date = db_plugin_date.commit_date
         repo_info = get_repository_information(
-            plugin, octokit, db_plugin_date.etag, db_plugin_date.commit_date
+            plugin, etag, last_commit_date=last_commit_date
         )
         plugin.last_commit_date = repo_info.last_commit_date
         plugin.etag = repo_info.etag
@@ -59,7 +64,6 @@ def first_funding_url(plugin: Manifest) -> str:
 
 def get_repository_information(
     plugin: PluginItems,
-    octokit: Github,
     etag: Optional[str] = None,
     last_commit_date: Optional[str | datetime] = None,
 ) -> RepositoryInformationDate:
