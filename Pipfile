@@ -22,4 +22,4 @@ python_version = "3.11"
 
 [scripts]
 dev = "python src/main.py dev"
-run = "python src/main.py run"
+run = "python src/main.py"
