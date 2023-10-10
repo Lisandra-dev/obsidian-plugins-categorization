@@ -7,6 +7,13 @@ name = "pypi"
 seatable-api = "*"
 pandas = "*"
 ruff = "*"
+pydantic = "*"
+python-dotenv = "*"
+octokitpy = "*"
+pygithub = "*"
+rich = "*"
+spinners = "*"
+halo = "*"
 
 [dev-packages]
 

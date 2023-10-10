@@ -1,3 +1,28 @@
 {
-	"GitHooks.hooksDirectory": "e:\\Documents\\Github\\obsidian-plugins-categorization\\.git\\hooks"
+	"GitHooks.hooksDirectory": "e:\\Documents\\Github\\obsidian-plugins-categorization\\.git\\hooks",
+	"files.exclude": {
+		"**/.git": true,
+		"**/.svn": true,
+		"**/.hg": true,
+		"**/CVS": true,
+		"**/.DS_Store": true,
+		"**/Thumbs.db": true,
+		"**/.vscode": true,
+		".vscode": true,
+		"**/node_modules": true,
+		"node_modules": true,
+		"**/dist": true,
+		"dist": true,
+		"**/.idea": true,
+		".idea": true,
+		"**/.venv": true,
+		".venv": true,
+		"**/.ruff_cache": true,
+		".ruff_cache": true
+	},
+	"explorerExclude.backup": {},
+	"[python]": {
+		"editor.defaultFormatter": "charliermarsh.ruff"
+	},
+	"python.formatting.provider": "none"
 }
