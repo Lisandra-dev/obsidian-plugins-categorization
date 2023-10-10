@@ -1,13 +1,13 @@
 from datetime import datetime
-from typing import Any, Optional
+from typing import Optional
 
 from pydantic import BaseModel
 
 
 class EtagPlugins(BaseModel):
-    etag: str
+    etag: Optional[str] = None
     plugin_id: str
-    commit_date: str
+    commit_date: Optional[str | datetime] = None
 
 
 class PluginItems(BaseModel):
@@ -15,7 +15,7 @@ class PluginItems(BaseModel):
     name: str
     description: str
     repo: str
-    author: str
+    author: Optional[str] = None
     fundingUrl: Optional[str] = None  # noqa
     isDesktopOnly: Optional[bool] = None  # noqa
     last_commit_date: Optional[str | datetime] = None
@@ -27,11 +27,11 @@ class Manifest(BaseModel):
     id: str
     name: str
     version: str
-    minAppVersion: str  # noqa
+    minAppVersion: Optional[str] = None  # noqa
     description: str
-    author: str
-    authorUrl: str  # noqa
-    fundingUrl: Any  # noqa
+    author: Optional[str] = None
+    authorUrl: Optional[str] = None  # noqa
+    fundingUrl: Optional[dict | str] = None  # noqa
     isDesktopOnly: Optional[bool] = None  # noqa
 
 

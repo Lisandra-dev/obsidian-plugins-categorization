@@ -3,7 +3,7 @@ import os
 import urllib.error
 import urllib.request
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 import requests
 from github import Github
@@ -13,24 +13,24 @@ from interface import EtagPlugins, Manifest, PluginItems, RepositoryInformationD
 def manifest(plugin: PluginItems) -> Manifest:
     try:
         with urllib.request.urlopen(
-            f"https://raw.githubusercontent.com/${plugin.repo}/master/manifest.json"
+            f"https://raw.githubusercontent.com/{plugin.repo}/master/manifest.json"
         ) as url:
             manifest = json.loads(url.read().decode())
-            return manifest
+            return Manifest(**manifest)
     except urllib.error.HTTPError:
         with urllib.request.urlopen(
-            f"https://raw.githubusercontent.com/${plugin.repo}/main/manifest.json"
+            f"https://raw.githubusercontent.com/{plugin.repo}/main/manifest.json"
         ) as url:
             manifest = json.loads(url.read().decode())
-            return manifest
+            return Manifest(**manifest)
 
 
 def get_raw_data(
-    octokit: Github, commit_date: List[EtagPlugins], max_length: Optional[int] = None
-) -> List[PluginItems]:
+    octokit: Github, commit_date: list[EtagPlugins], max_length: Optional[int] = None
+) -> list[PluginItems]:
     url = "https://raw.githubusercontent.com/obsidianmd/obsidian-releases/master/community-plugins.json"
     content = urllib.request.urlopen(url).read()
-    data: List[PluginItems] = json.loads(content)
+    data: list[PluginItems] = [PluginItems(**x) for x in json.loads(content)]
     if max_length:
         data = data[:max_length]
     for plugin in data:

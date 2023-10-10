@@ -1,5 +1,5 @@
 import pandas as pd
-from interface import EtagPlugins
+from interface import EtagPlugins, PluginItems
 
 
 def get_etags_by_plugins(db: pd.DataFrame) -> list[EtagPlugins]:
@@ -9,7 +9,11 @@ def get_etags_by_plugins(db: pd.DataFrame) -> list[EtagPlugins]:
         etag = EtagPlugins(
             etag=plugin["ETAG"],
             plugin_id=plugin["ID"],
-            commit_date=plugin["Last commit date"],
+            commit_date=plugin["Last Commit Date"],
         )
         all_etags.append(etag)
     return all_etags
+
+
+def get_plugin_in_database(db: pd.DataFrame, plugin: PluginItems) -> pd.DataFrame:
+    return db.loc[db["ID"] == plugin.id]
