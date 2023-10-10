@@ -7,9 +7,9 @@ def get_etags_by_plugins(db: pd.DataFrame) -> list[EtagPlugins]:
     all_etags = []
     for plugin in all_plugins:
         etag = EtagPlugins(
-            etag=plugin["etag"],
-            plugins=plugin["plugins"],
-            commit_date=plugin["commit_date"],
+            etag=plugin["ETAG"],
+            plugin_id=plugin["ID"],
+            commit_date=plugin["Last commit date"],
         )
         all_etags.append(etag)
     return all_etags
