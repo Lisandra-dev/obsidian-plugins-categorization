@@ -18,8 +18,8 @@ halo = "*"
 [dev-packages]
 
 [requires]
-python_version = "3.12"
+python_version = "3.11"
 
 [scripts]
-dev = python src/main.py dev
-run = python src/main.py run
+dev = "python src/main.py dev"
+run = "python src/main.py run"
