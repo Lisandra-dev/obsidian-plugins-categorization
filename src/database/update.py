@@ -2,7 +2,6 @@ from datetime import datetime
 
 import pandas as pd
 from interface import PluginItems, Task_Info
-from rich.console import Console
 from seatable_api import Base
 from utils import generate_activity_tag
 
@@ -13,9 +12,9 @@ def update_old_entry(
     plugin: PluginItems,
     database: pd.DataFrame,
     seatable: Base,
-    console: Console,
     track_info: Task_Info,
 ) -> None:
+    console = track_info.Progress.console
     db = get_plugin_in_database(database, plugin).iloc[0]
     plugin_in_db = PluginItems(
         id=str(db["ID"]),

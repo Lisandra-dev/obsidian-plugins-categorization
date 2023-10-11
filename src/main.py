@@ -17,7 +17,7 @@ from github import Auth, Github
 from interface import EtagPlugins, PluginItems, Task_Info
 from rich import print
 from rich.console import Console
-from rich.progress import Progress, track
+from rich.progress import Progress
 from seatable_api import Base
 from utils import get_len_of_plugin
 
@@ -79,10 +79,15 @@ def track_plugins_update(
         task_info = Task_Info(progress, update)
         for plugin in all_plugins:
             if plugin_is_in_database(db, plugin):
-                console.print(f"• Updating {plugin.name}")
-                update_old_entry(plugin, db, base, console, task_info)
+                # console.print(f"• Updating {plugin.name}")
+                task_info.Progress.update(
+                    task_info.Task, description=f"[italic green]Updating {plugin.name}"
+                )
+                update_old_entry(plugin, db, base, task_info)
             else:
-                console.print(f"• Adding {plugin.name}")
+                task_info.Progress.update(
+                    task_info.Task, description=f"[underline blue]Adding {plugin.name}"
+                )
                 add_new(plugin, base)
                 task_info.Progress.update(task_info.Task, advance=1)
 
@@ -98,15 +103,26 @@ def track_plugin_deleted(  # noqa
     with console.status("[bold red]Searching for deleted plugins", spinner="dots"):
         deleted_plugins = search_deleted_plugin(db, all_plugins, max_length=max_length)
     if deleted_plugins:
-        for i in track(
-            range(len(deleted_plugins)), description="[bold red] Deleting plugins"
-        ):
-            console.log(f"Found {len(deleted_plugins)} deleted plugins")
+        console.log(f"Found {len(deleted_plugins)} deleted plugins")
+        with Progress() as progress:
+            delete = progress.add_task(
+                "[bold red]Deleting plugins", total=len(deleted_plugins)
+            )
+            task_info = Task_Info(progress, delete)
             for plugin in deleted_plugins:
                 if not dev:
                     base.delete_row("Plugins", plugin["_id"])
+                    task_info.Progress.update(
+                        task_info.Task,
+                        description=f"[italic red]Deleted {plugin['Name']}",
+                        advance=1,
+                    )
                 else:
-                    console.log(f"• {plugin['Name']} deleted")
+                    task_info.Progress.update(
+                        task_info.Task,
+                        description=f"[italic red underline]Deleted {plugin['Name']}",
+                        advance=1,
+                    )
     else:
         console.log("No deleted plugins found")
 
