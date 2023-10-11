@@ -1,13 +1,17 @@
 from datetime import datetime
-from typing import Optional
+from typing import NamedTuple, Optional
 
 from pydantic import BaseModel
+from rich.progress import Progress, TaskID
 
 
 class EtagPlugins(BaseModel):
     etag: Optional[str] = None
     plugin_id: str
     commit_date: Optional[str | datetime] = None
+
+
+Task_Info = NamedTuple("task_info", [("Progress", Progress), ("Task", TaskID)])
 
 
 class PluginItems(BaseModel):

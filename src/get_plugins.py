@@ -6,7 +6,13 @@ from datetime import datetime
 from typing import Optional
 
 import requests
-from interface import EtagPlugins, Manifest, PluginItems, RepositoryInformationDate
+from interface import (
+    EtagPlugins,
+    Manifest,
+    PluginItems,
+    RepositoryInformationDate,
+    Task_Info,
+)
 
 
 def manifest(plugin: PluginItems) -> Manifest:
@@ -25,8 +31,10 @@ def manifest(plugin: PluginItems) -> Manifest:
 
 
 def get_raw_data(
-    commit_date: list[EtagPlugins], max_length: Optional[int] = None
-) -> list[PluginItems]:
+    commit_date: list[EtagPlugins],
+    task_info: Task_Info,
+    max_length: Optional[int] = None,
+) -> tuple[list[PluginItems], Task_Info]:
     url = "https://raw.githubusercontent.com/obsidianmd/obsidian-releases/master/community-plugins.json"
     content = urllib.request.urlopen(url).read()
     data: list[PluginItems] = [PluginItems(**x) for x in json.loads(content)]
@@ -39,6 +47,7 @@ def get_raw_data(
         db_plugin_date = [x for x in commit_date if x.plugin_id == plugin.id]
         etag = None
         last_commit_date = None
+        task_info.Progress.update(task_info.Task, advance=0.5)
         if len(db_plugin_date) > 0:
             db_plugin_date = db_plugin_date[0]
             etag = db_plugin_date.etag
@@ -46,9 +55,10 @@ def get_raw_data(
         repo_info = get_repository_information(
             plugin, etag, last_commit_date=last_commit_date
         )
+        task_info.Progress.update(task_info.Task, advance=0.5)
         plugin.last_commit_date = repo_info.last_commit_date
         plugin.etag = repo_info.etag
-    return data
+    return data, task_info
 
 
 def first_funding_url(plugin: Manifest) -> str:

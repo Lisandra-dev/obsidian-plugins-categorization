@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import pandas as pd
-from interface import PluginItems
+from interface import PluginItems, Task_Info
 from rich.console import Console
 from seatable_api import Base
 from utils import generate_activity_tag
@@ -10,7 +10,11 @@ from database.search import get_plugin_in_database
 
 
 def update_old_entry(
-    plugin: PluginItems, database: pd.DataFrame, seatable: Base, console: Console
+    plugin: PluginItems,
+    database: pd.DataFrame,
+    seatable: Base,
+    console: Console,
+    track_info: Task_Info,
 ) -> None:
     db = get_plugin_in_database(database, plugin).iloc[0]
     plugin_in_db = PluginItems(
@@ -46,26 +50,28 @@ def update_old_entry(
     to_update = False
     # check if the plugin has changed
     if (plugin_in_db.author != plugin.author) and plugin.author:
-        console.log(f"Mismatched author: {plugin_in_db.author} != {plugin.author}")
+        console.log(
+            f"[italic red]Mismatched author: {plugin_in_db.author} != {plugin.author}"
+        )
         to_update = True
         database_properties["Author"] = plugin.author
 
     if (plugin_in_db.description != plugin.description) and plugin.description:
         console.log(
-            f"Mismatched description: {plugin_in_db.description} != {plugin.description}"
+            f"[italic red]Mismatched description: {plugin_in_db.description} != {plugin.description}"
         )
         to_update = True
         database_properties["Description"] = plugin.description
     if (plugin_in_db.fundingUrl != plugin.fundingUrl) and plugin.fundingUrl:
         console.log(
-            f"Mismatched fundingUrl: {plugin_in_db.fundingUrl} != {plugin.fundingUrl}"
+            f"[italic red]Mismatched fundingUrl: {plugin_in_db.fundingUrl} != {plugin.fundingUrl}"
         )
         to_update = True
         database_properties["Funding URL"] = plugin.fundingUrl
 
     if (plugin_in_db.isDesktopOnly != plugin.isDesktopOnly) and not error:
         console.log(
-            f"Mismatched isDesktopOnly: {plugin_in_db.isDesktopOnly} != {plugin.isDesktopOnly}"
+            f"[italic red]Mismatched isDesktopOnly: {plugin_in_db.isDesktopOnly} != {plugin.isDesktopOnly}"
         )
         # not that the value is invert; if the plugin is mobile friendly, the value is False
         to_update = True
@@ -73,23 +79,26 @@ def update_old_entry(
 
     if plugin_in_db.last_commit_date != plugin.last_commit_date:
         console.log(
-            f"Mismatched last_commit_date: {plugin_in_db.last_commit_date} != {plugin.last_commit_date}"
+            f"[italic red]Mismatched last_commit_date: {plugin_in_db.last_commit_date} != {plugin.last_commit_date}"
         )
         last_commit_date = plugin.last_commit_date
         if isinstance(last_commit_date, datetime):
             last_commit_date = last_commit_date.isoformat()
         database_properties["Last Commit Date"] = last_commit_date
     if (plugin_in_db.etag != plugin.etag) and plugin.etag:
-        console.log(f"Mismatched etag: {plugin_in_db.etag} != {plugin.etag}")
+        console.log(
+            f"[italic red]Mismatched etag: {plugin_in_db.etag} != {plugin.etag}"
+        )
         to_update = True
         database_properties["ETAG"] = plugin.etag
     status = generate_activity_tag(plugin)
     if (plugin_in_db.status != status) and (
         plugin_in_db.status != "MAINTENANCE" or plugin.status != "ARCHIVED"
     ):
-        console.log(f"Mismatched status: {plugin_in_db.status} != {status}")
+        console.log(f"[italic red]Mismatched status: {plugin_in_db.status} != {status}")
         to_update = True
         database_properties["Status"] = status
     if to_update:
         console.log(f"Updating {plugin_in_db.name}")
         seatable.update_row("Plugins", db["_id"], database_properties)
+    track_info.Progress.update(track_info.Task, advance=1)

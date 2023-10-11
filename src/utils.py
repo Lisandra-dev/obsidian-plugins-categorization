@@ -1,3 +1,5 @@
+import json
+import urllib.request
 from datetime import datetime
 
 from interface import PluginItems
@@ -17,3 +19,10 @@ def generate_activity_tag(plugin: PluginItems) -> str:
         else:
             return "STALE"
     return "STALE"
+
+
+def get_len_of_plugin() -> int:
+    url = "https://raw.githubusercontent.com/obsidianmd/obsidian-releases/master/community-plugins.json"
+    content = urllib.request.urlopen(url).read()
+    data = json.loads(content)
+    return len(data)
