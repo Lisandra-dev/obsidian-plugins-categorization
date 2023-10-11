@@ -4,11 +4,17 @@ from typing import NamedTuple, Optional
 from pydantic import BaseModel
 from rich.progress import Progress, TaskID
 
+type UnString = Optional[str]
+type UnDate = Optional[str | datetime]
+type UnBool = Optional[bool]
+type UnDict = Optional[dict | str]
+type UnInt = Optional[int]
+
 
 class EtagPlugins(BaseModel):
-    etag: Optional[str] = None
+    etag: UnString = None
     plugin_id: str
-    commit_date: Optional[str | datetime] = None
+    commit_date: UnDate = None
 
 
 Task_Info = NamedTuple("task_info", [("Progress", Progress), ("Task", TaskID)])
@@ -19,26 +25,26 @@ class PluginItems(BaseModel):
     name: str
     description: str
     repo: str
-    author: Optional[str] = None
-    fundingUrl: Optional[str] = None  # noqa
-    isDesktopOnly: Optional[bool] = None  # noqa
-    last_commit_date: Optional[str | datetime] = None
-    etag: Optional[str] = None
-    status: Optional[str] = None
+    author: UnString = None
+    fundingUrl: UnString = None  # noqa
+    isDesktopOnly: UnBool = None  # noqa
+    last_commit_date: UnDate = None
+    etag: UnString = None
+    status: UnString = None
 
 
 class Manifest(BaseModel):
     id: str
     name: str
     version: str
-    minAppVersion: Optional[str] = None  # noqa
+    minAppVersion: UnString = None  # noqa
     description: str
-    author: Optional[str] = None
-    authorUrl: Optional[str] = None  # noqa
-    fundingUrl: Optional[dict | str] = None  # noqa
-    isDesktopOnly: Optional[bool] = None  # noqa
+    author: UnString = None
+    authorUrl: UnString = None  # noqa
+    fundingUrl: UnDict = None  # noqa
+    isDesktopOnly: UnBool = None  # noqa
 
 
 class RepositoryInformationDate(BaseModel):
-    last_commit_date: Optional[str | datetime] = None
-    etag: Optional[str] = None
+    last_commit_date: UnDate = None
+    etag: UnString = None

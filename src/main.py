@@ -1,7 +1,6 @@
 import datetime
 import os
 import sys
-from typing import Optional
 
 import pandas as pd
 from database.add_new import add_new
@@ -14,7 +13,7 @@ from database.update import update_old_entry
 from dotenv import load_dotenv
 from get_plugins import get_raw_data
 from github import Auth, Github
-from interface import EtagPlugins, PluginItems, Task_Info
+from interface import EtagPlugins, PluginItems, Task_Info, UnInt
 from rich import print
 from rich.console import Console
 from rich.progress import Progress
@@ -50,7 +49,7 @@ def fetch_seatable_data(
 def fetch_github_data(
     console: Console,
     commits_from_db: list[EtagPlugins],
-    max_length: Optional[int] = None,
+    max_length: UnInt = None,
 ) -> list[PluginItems]:
     len_plugins = get_len_of_plugin()
     console.log(f"Found {len_plugins} plugins on GitHub")
@@ -70,7 +69,7 @@ def fetch_github_data(
 
 
 def track_plugins_update(
-    console: Console, all_plugins: list[PluginItems], db: pd.DataFrame, base: Base
+    all_plugins: list[PluginItems], db: pd.DataFrame, base: Base
 ) -> None:
     with Progress() as progress:
         update = progress.add_task(
@@ -98,10 +97,10 @@ def track_plugin_deleted(  # noqa
     dev: bool,
     db: pd.DataFrame,
     base: Base,
-    max_length: Optional[int] = None,
+    max_length: UnInt = None,
 ) -> None:
     with console.status("[bold red]Searching for deleted plugins", spinner="dots"):
-        deleted_plugins = search_deleted_plugin(db, all_plugins, max_length=max_length)
+        deleted_plugins = search_deleted_plugin(db, all_plugins)
     if deleted_plugins:
         console.log(f"Found {len(deleted_plugins)} deleted plugins")
         with Progress() as progress:
@@ -159,7 +158,7 @@ def main() -> None:
 
         all_plugins.append(PluginItems(**test_plugin))
 
-    track_plugins_update(console, all_plugins, db, base)
+    track_plugins_update(all_plugins, db, base)
     track_plugin_deleted(console, all_plugins, dev, db, base, max_length=max_length)
 
     end_time = datetime.datetime.now()

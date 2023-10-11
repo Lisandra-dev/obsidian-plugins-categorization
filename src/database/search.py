@@ -26,9 +26,7 @@ def plugin_is_in_database(db: pd.DataFrame, plugin: PluginItems) -> bool:
 
 
 def search_deleted_plugin(
-    seatable: pd.DataFrame,
-    all_plugins: list[PluginItems],
-    max_length: int | None = None,
+    seatable: pd.DataFrame, all_plugins: list[PluginItems]
 ) -> list[Any]:
     deleted_plugins = []
     for index, row in seatable.iterrows():

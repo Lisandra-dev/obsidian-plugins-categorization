@@ -2,7 +2,6 @@ import json
 import os
 import urllib.error
 import urllib.request
-from datetime import datetime
 from typing import Optional
 
 import requests
@@ -12,6 +11,8 @@ from interface import (
     PluginItems,
     RepositoryInformationDate,
     Task_Info,
+    UnDate,
+    UnString,
 )
 
 
@@ -74,8 +75,8 @@ def first_funding_url(plugin: Manifest) -> str:
 
 def get_repository_information(
     plugin: PluginItems,
-    etag: Optional[str] = None,
-    last_commit_date: Optional[str | datetime] = None,
+    etag: UnString = None,
+    last_commit_date: UnDate = None,
 ) -> RepositoryInformationDate:
     try:
         # call the commits info using octokit + the etag from the database
