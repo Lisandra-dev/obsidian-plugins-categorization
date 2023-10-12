@@ -10,16 +10,24 @@ Hence, I did some effort to collect Obsidian.md community plugins and categorize
 
 My main purpose behind this effort is to help myself and others to find the proper plugin for different personal needs after using Obsidian.md.
 
-## Structure
+## Developpement
 
-There is 1 python scripts in this repository:
-  - update-seatable-database.py: Update Seatable database automatically with new and updated plugins,
-
-This script is running daily through Githab Actions to update plugins list automatically. 
+The database is fetch and completed using the package in `src/`. Each file have there own purpose, and it use the GitHub API (connected via a GitHub Tokens) to get:
+- DesktopOnly
+- FundingUrl (only the first link is used if an object is used)
+- The last commit date. The Etag is conserved in the `ETAGS` columnn in the database to prevent multiple-fetching and killing the GitHub API. The commits date allow to tags the plugin in two development state:
+  - STALE : No update in one year
+  - ACTIVE : Less than one year
+  
+  After, plugin are reviewed and this state can be edited to:
+  - Archived: The author looking for a new maintener or archived the repository manually, without removing it from the Obsidian Community list.
+  - Maintenance: No new FR will be made but bug-fix and PR will be merged.
 
 ## Output
 
-- [Seatable database](https://cloud.seatable.io/dtable/links/eaf696faed944cbba838): you can access this database after creating account on Seatable for free,
+- [Seatable database](https://cloud.seatable.io/dtable/links/eaf696faed944cbba838): you can access this database after creating account on Seatable for free.
+
+The DB have some hidden columns for developping purpose.
 
 ## Discussions
 
