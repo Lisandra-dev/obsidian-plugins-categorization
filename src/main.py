@@ -5,6 +5,7 @@ import sys
 import pandas as pd
 from database.add_new import add_new
 from database.search import (
+    delete_duplicate,
     get_etags_by_plugins,
     plugin_is_in_database,
     search_deleted_plugin,
@@ -160,6 +161,9 @@ def main() -> None:
 
     track_plugins_update(all_plugins, db, base)
     track_plugin_deleted(console, all_plugins, dev, db, base, max_length=max_length)
+
+    console.log("Deleting duplicate entries")
+    delete_duplicate(db, base)
 
     end_time = datetime.datetime.now()
     diff_time_in_min = (end_time - start_time).total_seconds() / 60

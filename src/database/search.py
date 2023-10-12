@@ -2,6 +2,7 @@ from typing import Any
 
 import pandas as pd
 from interface import EtagPlugins, PluginItems
+from seatable_api import Base
 
 
 def get_etags_by_plugins(db: pd.DataFrame) -> list[EtagPlugins]:
@@ -34,3 +35,9 @@ def search_deleted_plugin(
         if len(plugin) == 0:
             deleted_plugins.append(row)
     return deleted_plugins
+
+
+def delete_duplicate(db: pd.DataFrame, seatable: Base) -> None:
+    duplicate = db[db.duplicated("ID", keep=False)]
+    duplicated_ids = list(set(duplicate["_id"].tolist()))
+    seatable.batch_delete_rows("Plugins", duplicated_ids)
