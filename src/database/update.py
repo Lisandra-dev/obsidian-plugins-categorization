@@ -44,7 +44,9 @@ def update_old_entry(
         "ETAG": plugin_in_db.etag,
         "Status": plugin_in_db.status,
         "Error": error,
-        "Plugin Available": True,
+        "Plugin Available": bool(db["Plugin Available"])
+        if db["Plugin Available"]
+        else True,
     }
     to_update = False
     # check if the plugin has changed
