@@ -4,6 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+
+
+[dev-packages]
 seatable-api = "*"
 pandas = "*"
 ruff = "*"
@@ -11,7 +14,6 @@ pydantic = "*"
 python-dotenv = "*"
 rich = "*"
 
-[dev-packages]
 
 [requires]
 python_version = "3.12"
