@@ -18,10 +18,19 @@ The database is fetch and completed using the package in `src/`. Each file have 
 - The last commit date. The Etag is conserved in the `ETAGS` columnn in the database to prevent multiple-fetching and killing the GitHub API. The commits date allow to tags the plugin in two development state:
   - STALE : No update in one year
   - ACTIVE : Less than one year
-  
+
   After, plugin are reviewed and this state can be edited to:
-  - Archived: The author looking for a new maintener or archived the repository manually, without removing it from the Obsidian Community list.
-  - Maintenance: No new FR will be made but bug-fix and PR will be merged.
+  - ARCHIVED : The author looking for a new maintener or archived the repository manually, without removing it from the Obsidian Community list.
+  - MAINTENANCE: No new FR will be made but bug-fix and PR will be merged.
+
+> [!NOTE]
+> You need to create an `.env` file with the following content:
+> ```bash
+> GITHUB_TOKEN=YOUR_GITHUB_TOKEN
+> SEATABLE_API_TOKEN=YOUR_SEATABLE_API_TOKEN
+> ```
+> - [See here for how to get the GITHUB_TOKEN](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token)
+> - [See here for how to get the seatable Token](https://seatable.io/en/docs/seatable-api/erzeugen-eines-api-tokens/) your Seatable API Token
 
 ## Output
 
