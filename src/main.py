@@ -53,6 +53,8 @@ def fetch_github_data(
     max_length: UnInt = None,
 ) -> list[PluginItems]:
     len_plugins = get_len_of_plugin()
+    if max_length:
+        len_plugins = max_length
     console.log(f"Found {len_plugins} plugins on GitHub")
     all_plugins = []
     with Progress() as progress:
@@ -95,10 +97,8 @@ def track_plugins_update(
 def track_plugin_deleted(  # noqa
     console: Console,
     all_plugins: list[PluginItems],
-    dev: bool,
     db: pd.DataFrame,
     base: Base,
-    max_length: UnInt = None,
 ) -> None:
     with console.status("[bold red]Searching for deleted plugins", spinner="dots"):
         deleted_plugins = search_deleted_plugin(db, all_plugins)
@@ -110,19 +110,13 @@ def track_plugin_deleted(  # noqa
             )
             task_info = Task_Info(progress, delete)
             for plugin in deleted_plugins:
-                if not dev:
-                    base.delete_row("Plugins", plugin["_id"])
-                    task_info.Progress.update(
-                        task_info.Task,
-                        description=f"[italic red]Deleted {plugin['Name']}",
-                        advance=1,
-                    )
-                else:
-                    task_info.Progress.update(
-                        task_info.Task,
-                        description=f"[italic red underline]Deleted {plugin['Name']}",
-                        advance=1,
-                    )
+                base.delete_row("Plugins", plugin["_id"])
+                task_info.Progress.update(
+                    task_info.Task,
+                    description=f"[italic red]Deleted {plugin['Name']}",
+                    advance=1,
+                )
+
     else:
         console.log("No deleted plugins found")
 
@@ -160,10 +154,18 @@ def main() -> None:
         all_plugins.append(PluginItems(**test_plugin))
 
     track_plugins_update(all_plugins, db, base)
-    track_plugin_deleted(console, all_plugins, dev, db, base, max_length=max_length)
+    if not dev:
+        track_plugin_deleted(console, all_plugins, db, base)
 
     console.log("Deleting duplicate entries")
-    delete_duplicate(db, base)
+    if not dev:
+        delete_duplicate(db, base)
+    else:  # find len of duplicate
+        duplicate = db[db.duplicated("ID", keep=False)]
+        duplicated_ids = list(set(duplicate["id"].tolist()))
+        console.log(
+            f"Found {len(duplicated_ids)} duplicated plugins:\n• {"\n• ".join(duplicated_ids)} "
+        )
 
     end_time = datetime.datetime.now()
     diff_time_in_min = (end_time - start_time).total_seconds() / 60
