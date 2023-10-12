@@ -41,7 +41,9 @@ def get_raw_data(
     data: list[PluginItems] = [PluginItems(**x) for x in json.loads(content)]
     if max_length:
         data = data[:max_length]
+        # task_info.Progress.console.log(f"Fetching {max_length} plugins")
     for plugin in data:
+        task_info.Progress.update(task_info.Task, description=f"Fetching {plugin.name}")
         plugin_manifest = manifest(plugin)
         plugin.isDesktopOnly = plugin_manifest.isDesktopOnly
         plugin.fundingUrl = first_funding_url(plugin_manifest)
