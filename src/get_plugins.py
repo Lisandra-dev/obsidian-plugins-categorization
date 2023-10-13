@@ -84,8 +84,11 @@ def get_repository_information(
         # call the commits info using octokit + the etag from the database
         # if the etag is not None
         # no support for etag in GithubPy, use request as fallback
-        owner = plugin.repo.split("/")[0]
-        repo = plugin.repo.split("/")[1]
+        if plugin.repo:
+            owner = plugin.repo.split("/")[0]
+            repo = plugin.repo.split("/")[1]
+        else:
+            raise Exception("No repo found")
         url = f"https://api.github.com/repos/{owner}/{repo}/commits"
         header = {
             "Accept": "application/vnd.github.v3+json",

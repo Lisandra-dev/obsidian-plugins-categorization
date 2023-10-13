@@ -24,7 +24,7 @@ class PluginItems(BaseModel):
     id: str
     name: str
     description: str
-    repo: str
+    repo: UnString = None
     author: UnString = None
     fundingUrl: UnString = None  # noqa
     isDesktopOnly: UnBool = None  # noqa
