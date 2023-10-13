@@ -20,4 +20,5 @@ python_version = "3.12"
 
 [scripts]
 dev = "python src/main.py dev"
-start = "python src/main.py"
+test = "python src/main.py test"
+prod = "python src/main.py prod"
