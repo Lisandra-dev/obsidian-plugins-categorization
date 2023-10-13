@@ -2,6 +2,7 @@ from datetime import datetime
 
 from interface import PluginItems
 from seatable_api import Base
+from utils import generate_activity_tag
 
 
 def add_new(plugin: PluginItems, seatable: Base) -> None:
@@ -20,7 +21,7 @@ def add_new(plugin: PluginItems, seatable: Base) -> None:
         "Mobile friendly": mobile,
         "Last Commit Date": last_commit_date,  # convert to string
         "ETAG": plugin.etag,
-        "Status": plugin.status,
+        "Status": generate_activity_tag(plugin),
         "Error": False,
         "Plugin Available": True,
     }
