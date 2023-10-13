@@ -19,14 +19,25 @@ from rich import print
 from rich.console import Console
 from rich.progress import Progress
 from seatable_api import Base
+from typing_extensions import Literal
 from utils import get_len_of_plugin
 
 load_dotenv()
 
 
-def get_database() -> tuple[pd.DataFrame, Base]:
+def get_database(
+    env: Literal["dev", "prod", "test", None] = None
+) -> tuple[pd.DataFrame, Base]:
     server_url = "https://cloud.seatable.io"
-    token = os.getenv("SEATABLE_API_TOKEN")
+    token = os.getenv("SEATABLE_API_TOKEN_PROD")
+    if env == "dev":
+        token = os.getenv("SEATABLE_API_TOKEN_DEV")
+    elif env == "test":
+        token = os.getenv("SEATABLE_API_TOKEN_TESTS")
+
+    if not token:
+        raise ValueError("No token found")
+
     table_name = "Plugins"
     base = Base(token, server_url)
     base.auth()
@@ -41,10 +52,20 @@ def fetch_seatable_data(
     console: Console
 ) -> tuple[pd.DataFrame, Base, list[EtagPlugins]]:
     with console.status("[bold green]Fetching data from SeaTable", spinner="dots"):
-        db, base = get_database()
+        db, base = get_database(fetch_arguments())
         commits_from_db = get_etags_by_plugins(db)
     console.log(f"Found {len(db)} plugins in the database")
     return db, base, commits_from_db
+
+
+def fetch_arguments() -> Literal["dev", "prod", "test", None]:
+    env = "prod"
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "dev":
+            env = "dev"
+        elif sys.argv[1] == "test":
+            env = "test"
+    return env
 
 
 def fetch_github_data(
@@ -127,7 +148,7 @@ def main() -> None:
     start_time = datetime.datetime.now()
     # get rate limit
     max_length: int | None = None
-    dev = len(sys.argv) > 1 and sys.argv[1] == "dev"
+    dev = fetch_arguments() == "test"
     if dev:
         max_length = 5
     rate_limit = octokit.get_rate_limit()
@@ -157,9 +178,8 @@ def main() -> None:
     if not dev:
         track_plugin_deleted(console, all_plugins, db, base)
 
-    console.log("Deleting duplicate entries")
     if not dev:
-        delete_duplicate(db, base)
+        delete_duplicate(db, base, console)
     else:  # find len of duplicate
         duplicate = db[db.duplicated("ID", keep=False)]
         duplicated_ids = list(set(duplicate["id"].tolist()))
