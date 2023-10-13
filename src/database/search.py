@@ -2,6 +2,7 @@ from typing import Any
 
 import pandas as pd
 from interface import EtagPlugins, PluginItems
+from rich.console import Console
 from seatable_api import Base
 
 
@@ -37,7 +38,11 @@ def search_deleted_plugin(
     return deleted_plugins
 
 
-def delete_duplicate(db: pd.DataFrame, seatable: Base) -> None:
+def delete_duplicate(db: pd.DataFrame, seatable: Base, console: Console) -> None:
     duplicate = db[db.duplicated("ID", keep=False)]
+    if duplicate.empty:
+        console.log("[underline grey]No duplicate found")
+        return
     duplicated_ids = list(set(duplicate["_id"].tolist()))
     seatable.batch_delete_rows("Plugins", duplicated_ids)
+    console.log(f"[underline grey]Deleted {len(duplicated_ids)} duplicate(s)")
