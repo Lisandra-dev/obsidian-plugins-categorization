@@ -20,7 +20,9 @@ def update_old_entry(
         id=str(db["ID"]),
         name=str(db["Name"]),
         description=str(db["Description"]),
-        repo=str(db["Github Link"].replace("https://github.com/", "")),
+        repo=str(db["Github Link"].replace("https://github.com/", ""))
+        if db["Github Link"]
+        else None,
         author=str(db["Author"]) if db["Author"] else None,
         fundingUrl=str(db["Funding URL"]) if db["Funding URL"] else None,
         isDesktopOnly=not bool(db["Mobile friendly"])
@@ -99,6 +101,12 @@ def update_old_entry(
         console.log(f"[italic red]Mismatched status: {plugin_in_db.status} != {status}")
         to_update = True
         database_properties["Status"] = status
+    if (plugin_in_db.repo != plugin.repo) and plugin.repo:
+        console.log(
+            f"[italic red]Mismatched repo: {plugin_in_db.repo} != {plugin.repo}"
+        )
+        to_update = True
+        database_properties["Github Link"] = f"https://github.com/{plugin.repo}"
     if to_update:
         console.log(f"Updating {plugin_in_db.name}")
         seatable.update_row("Plugins", db["_id"], database_properties)
