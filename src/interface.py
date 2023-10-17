@@ -1,8 +1,9 @@
 from datetime import datetime
 from enum import StrEnum
-from typing import NamedTuple, Optional
+from typing import Any, NamedTuple, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from rich.console import Console
 from rich.progress import Progress, TaskID
 
 type UnString = Optional[str]
@@ -31,7 +32,9 @@ class EtagPlugins(BaseModel):
 Task_Info = NamedTuple("task_info", [("Progress", Progress), ("Task", TaskID)])
 
 
-class PluginItems(BaseModel):
+class PluginItems(
+    BaseModel,
+):
     id: str
     name: str
     description: str
@@ -41,7 +44,15 @@ class PluginItems(BaseModel):
     isDesktopOnly: UnBool = None  # noqa
     last_commit_date: UnDate = None
     etag: UnString = None
-    status: UnState = None
+    status: Optional[State] = None
+
+
+class PluginProperties(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    database_properties: dict[str, Any]
+    plugin: PluginItems
+    seatable: PluginItems
+    console: Console
 
 
 class Manifest(BaseModel):

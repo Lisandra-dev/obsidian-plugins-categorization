@@ -1,20 +1,24 @@
 from datetime import datetime
+from typing import Any
 
 import pandas as pd
-from interface import PluginItems, State, Task_Info
+from interface import PluginItems, PluginProperties, State, Task_Info
 from seatable_api import Base
 from utils import generate_activity_tag
 
 from database.search import get_plugin_in_database
 
+from .automatic_category import add_new_keywords, new_keywords_list, update_links
 
-def update_old_entry(
+
+def update(  # noqa
     plugin: PluginItems,
     database: pd.DataFrame,
     seatable: Base,
-    track_info: Task_Info,
+    task_info: Task_Info,
+    keywords: pd.DataFrame,
+    link_id: str,
 ) -> None:
-    console = track_info.Progress.console
     db = get_plugin_in_database(database, plugin).iloc[0]
     plugin_in_db = PluginItems(
         id=str(db["ID"]),
@@ -33,7 +37,7 @@ def update_old_entry(
         status=State(db["Status"]) if db["Status"] else None,
     )
     error = bool(db["Error"]) if db["Error"] else False
-
+    console = task_info.Progress.console
     database_properties = {
         "ID": plugin_in_db.id,
         "Name": plugin_in_db.name,
@@ -44,34 +48,61 @@ def update_old_entry(
         "Mobile friendly": not plugin_in_db.isDesktopOnly,
         "Last Commit Date": plugin_in_db.last_commit_date,
         "ETAG": plugin_in_db.etag,
-        "Status": plugin_in_db.status,
+        "Status": str(plugin_in_db.status),
         "Error": error,
         "Plugin Available": bool(db["Plugin Available"])
         if db["Plugin Available"]
         else True,
+        "Auto-Suggested Categories": db["Auto-Suggested Categories"]
+        if db["Auto-Suggested Categories"]
+        else None,
     }
+
+    plugin_properties = PluginProperties(
+        database_properties=database_properties,
+        plugin=plugin,
+        seatable=plugin_in_db,
+        console=console,
+    )
+    must_update = []
+    must_update, database_properties = update_author(plugin_properties, must_update)
+    must_update, database_properties = update_description(
+        plugin_properties, must_update
+    )
+    must_update, database_properties = update_funding(plugin_properties, must_update)
+    must_update, database_properties = update_desktop_only(
+        plugin_properties, error=error, must_update=must_update
+    )
+    must_update, database_properties = update_last_date(plugin_properties, must_update)
+    must_update, database_properties = update_etag(plugin_properties, must_update)
+    must_update, database_properties = update_status(plugin_properties, must_update)
+    must_update, database_properties = plugin_repo(plugin_properties, must_update)
+
+    update_keywords(
+        plugin_properties=plugin_properties,
+        keywords=keywords,
+        auto_suggest_in_database=db["Auto-Suggested Categories"],
+        seatable=seatable,
+        id=(link_id, db["_id"]),
+    )
+
+    if any(must_update):
+        console.log(f"Updating {plugin_in_db.name}")
+        resp = seatable.update_row("Plugins", db["_id"], database_properties)
+        print(resp)
+    task_info.Progress.update(task_info.Task, advance=1)
+
+
+def update_desktop_only(
+    plugin_properties: PluginProperties,
+    error: bool,
+    must_update: list[bool],
+) -> tuple[list[bool], dict[str, Any]]:
     to_update = False
-    # check if the plugin has changed
-    if (plugin_in_db.author != plugin.author) and plugin.author:
-        console.log(
-            f"[italic red]Mismatched author: {plugin_in_db.author} != {plugin.author}"
-        )
-        to_update = True
-        database_properties["Author"] = plugin.author
-
-    if (plugin_in_db.description != plugin.description) and plugin.description:
-        console.log(
-            f"[italic red]Mismatched description: {plugin_in_db.description} != {plugin.description}"
-        )
-        to_update = True
-        database_properties["Description"] = plugin.description
-    if (plugin_in_db.fundingUrl != plugin.fundingUrl) and plugin.fundingUrl:
-        console.log(
-            f"[italic red]Mismatched fundingUrl: {plugin_in_db.fundingUrl} != {plugin.fundingUrl}"
-        )
-        to_update = True
-        database_properties["Funding URL"] = plugin.fundingUrl
-
+    database_properties = plugin_properties.database_properties
+    plugin_in_db = plugin_properties.seatable
+    plugin = plugin_properties.plugin
+    console = plugin_properties.console
     if (plugin_in_db.isDesktopOnly != plugin.isDesktopOnly) and not error:
         console.log(
             f"[italic red]Mismatched isDesktopOnly: {plugin_in_db.isDesktopOnly} != {plugin.isDesktopOnly}"
@@ -79,36 +110,186 @@ def update_old_entry(
         # not that the value is invert; if the plugin is mobile friendly, the value is False
         to_update = True
         database_properties["Mobile friendly"] = not plugin.isDesktopOnly
+    must_update.append(to_update)
+    return (must_update, database_properties)
+
+
+def update_author(
+    plugin_info: PluginProperties, must_update: list[bool]
+) -> tuple[list[bool], dict[str, Any]]:
+    to_update = False
+    database_property, plugin, plugin_in_db, console = [
+        plugin_info.database_properties,
+        plugin_info.plugin,
+        plugin_info.seatable,
+        plugin_info.console,
+    ]
+
+    if plugin_in_db.author != plugin.author:
+        console.log(
+            f"[italic red]Mismatched author: {plugin_in_db.author} != {plugin.author}"
+        )
+        to_update = True
+        database_property["Author"] = plugin.author
+    must_update.append(to_update)
+    return (must_update, database_property)
+
+
+def update_description(
+    plugin_info: PluginProperties, must_update: list[bool]
+) -> tuple[list[bool], dict[str, Any]]:
+    to_update = False
+    database_property, plugin, plugin_in_db, console = [
+        plugin_info.database_properties,
+        plugin_info.plugin,
+        plugin_info.seatable,
+        plugin_info.console,
+    ]
+
+    if (plugin_in_db.description != plugin.description) and plugin.description:
+        console.log(
+            f"[italic red]Mismatched description: {plugin_in_db.description} != {plugin.description}"
+        )
+        to_update = True
+        database_property["Description"] = plugin.description
+    must_update.append(to_update)
+    return (must_update, database_property)
+
+
+def update_funding(
+    plugin_info: PluginProperties, must_update: list[bool]
+) -> tuple[list[bool], dict[str, Any]]:
+    to_update = False
+    database_property, plugin, plugin_in_db, console = [
+        plugin_info.database_properties,
+        plugin_info.plugin,
+        plugin_info.seatable,
+        plugin_info.console,
+    ]
+
+    if (plugin_in_db.fundingUrl != plugin.fundingUrl) and plugin.fundingUrl:
+        console.log(
+            f"[italic red]Mismatched fundingUrl: {plugin_in_db.fundingUrl} != {plugin.fundingUrl}"
+        )
+        to_update = True
+        database_property["Funding URL"] = plugin.fundingUrl
+    must_update.append(to_update)
+    return (must_update, database_property)
+
+
+def update_last_date(
+    plugin_info: PluginProperties, must_update: list[bool]
+) -> tuple[list[bool], dict[str, Any]]:
+    to_update = False
+    database_property, plugin, plugin_in_db, console = [
+        plugin_info.database_properties,
+        plugin_info.plugin,
+        plugin_info.seatable,
+        plugin_info.console,
+    ]
+
+    if isinstance(plugin.last_commit_date, datetime):
+        plugin.last_commit_date = plugin.last_commit_date.strftime("%Y-%m-%d")
+    if isinstance(plugin_in_db.last_commit_date, datetime):
+        plugin_in_db.last_commit_date = plugin_in_db.last_commit_date.strftime(
+            "%Y-%m-%d"
+        )
 
     if plugin_in_db.last_commit_date != plugin.last_commit_date:
         console.log(
             f"[italic red]Mismatched last_commit_date: {plugin_in_db.last_commit_date} != {plugin.last_commit_date}"
         )
-        last_commit_date = plugin.last_commit_date
-        if isinstance(last_commit_date, datetime):
-            last_commit_date = last_commit_date.isoformat()
-        database_properties["Last Commit Date"] = last_commit_date
-    if (plugin_in_db.etag != plugin.etag) and plugin.etag:
+        to_update = True
+        database_property["Last Commit Date"] = plugin.last_commit_date
+    must_update.append(to_update)
+    return (must_update, database_property)
+
+
+def update_etag(
+    plugin_info: PluginProperties, must_update: list[bool]
+) -> tuple[list[bool], dict[str, Any]]:
+    to_update = False
+    database_property, plugin, plugin_in_db, console = [
+        plugin_info.database_properties,
+        plugin_info.plugin,
+        plugin_info.seatable,
+        plugin_info.console,
+    ]
+
+    if plugin_in_db.etag != plugin.etag:
         console.log(
             f"[italic red]Mismatched etag: {plugin_in_db.etag} != {plugin.etag}"
         )
         to_update = True
-        database_properties["ETAG"] = plugin.etag
+        database_property["ETAG"] = plugin.etag
+    must_update.append(to_update)
+    return (must_update, database_property)
+
+
+def update_status(
+    plugin_info: PluginProperties, must_update: list[bool]
+) -> tuple[list[bool], dict[str, Any]]:
+    to_update = False
+    database_property, plugin, plugin_in_db, console = [
+        plugin_info.database_properties,
+        plugin_info.plugin,
+        plugin_info.seatable,
+        plugin_info.console,
+    ]
+
     status = generate_activity_tag(plugin)
+
     if (plugin_in_db.status != status) and plugin_in_db.status not in [
         State.ARCHIVED,
         State.MAINTENANCE,
     ]:
         console.log(f"[italic red]Mismatched status: {plugin_in_db.status} != {status}")
         to_update = True
-        database_properties["Status"] = status
+        database_property["Status"] = str(status)
+    must_update.append(to_update)
+    return (must_update, database_property)
+
+
+def plugin_repo(
+    plugin_info: PluginProperties, must_update: list[bool]
+) -> tuple[list[bool], dict[str, Any]]:
+    to_update = False
+    database_property, plugin, plugin_in_db, console = [
+        plugin_info.database_properties,
+        plugin_info.plugin,
+        plugin_info.seatable,
+        plugin_info.console,
+    ]
+
     if (plugin_in_db.repo != plugin.repo) and plugin.repo:
         console.log(
             f"[italic red]Mismatched repo: {plugin_in_db.repo} != {plugin.repo}"
         )
         to_update = True
-        database_properties["Github Link"] = f"https://github.com/{plugin.repo}"
-    if to_update:
-        console.log(f"Updating {plugin_in_db.name}")
-        seatable.update_row("Plugins", db["_id"], database_properties)
-    track_info.Progress.update(track_info.Task, advance=1)
+        database_property["Github Link"] = f"https://github.com/{plugin.repo}"
+    must_update.append(to_update)
+    return (must_update, database_property)
+
+
+def update_keywords(
+    plugin_properties: PluginProperties,
+    keywords: pd.DataFrame,
+    auto_suggest_in_database: list[Any],
+    seatable: Base,
+    id: tuple[str, str],
+) -> None:
+    database_property, plugin, console = [
+        plugin_properties.database_properties,
+        plugin_properties.plugin,
+        plugin_properties.console,
+    ]
+
+    auto_category: list[Any] = add_new_keywords(database_property, plugin, keywords)
+    keywords_list: list[Any] = new_keywords_list(database_property, auto_category)
+
+    if keywords_list != auto_suggest_in_database:
+        console.log(
+            f"[italic red]Mismatched auto-suggested categories : {auto_category} != {auto_suggest_in_database}"
+        )
+        link_id, row_id = id
+        update_links(seatable, link_id, auto_category, row_id)

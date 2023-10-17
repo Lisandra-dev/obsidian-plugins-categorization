@@ -10,11 +10,11 @@ from database.search import (
     plugin_is_in_database,
     search_deleted_plugin,
 )
-from database.update import update_old_entry
+from database.update import update
 from dotenv import load_dotenv
 from get_plugins import get_raw_data
 from github import Auth, Github
-from interface import EtagPlugins, PluginItems, Task_Info, UnInt
+from interface import EtagPlugins, PluginItems, State, Task_Info, UnInt
 from rich import print
 from rich.console import Console
 from rich.progress import Progress
@@ -58,13 +58,19 @@ def fetch_seatable_data(
     return db, base, commits_from_db
 
 
+def get_keyword_to_category(seatable: Base) -> tuple[pd.DataFrame, str]:
+    table_name = "Keywords to Category"
+    keywords = seatable.query("SELECT * FROM `" + table_name + "` LIMIT 10000")
+    df_seatable = pd.json_normalize(keywords)
+    link_id = seatable.get_column_link_id(table_name, "Category Record")
+    return df_seatable, link_id
+
+
 def fetch_arguments() -> Literal["dev", "prod", "test", None]:
     env = "prod"
     if len(sys.argv) > 1:
-        if sys.argv[1] == "dev":
+        if sys.argv[1] == "dev" or sys.argv[1] == "test":
             env = "dev"
-        elif sys.argv[1] == "test":
-            env = "test"
     return env
 
 
@@ -93,20 +99,24 @@ def fetch_github_data(
 
 
 def track_plugins_update(
-    all_plugins: list[PluginItems], db: pd.DataFrame, base: Base
+    all_plugins: list[PluginItems],
+    db: pd.DataFrame,
+    base: Base,
+    keywords: pd.DataFrame,
+    link_id: str,
 ) -> None:
     with Progress() as progress:
-        update = progress.add_task(
+        update_task = progress.add_task(
             "[bold green]Updating plugins", total=len(all_plugins)
         )
-        task_info = Task_Info(progress, update)
+        task_info = Task_Info(progress, update_task)
         for plugin in all_plugins:
             if plugin_is_in_database(db, plugin):
                 # console.print(f"• Updating {plugin.name}")
                 task_info.Progress.update(
                     task_info.Task, description=f"[italic green]Updating {plugin.name}"
                 )
-                update_old_entry(plugin, db, base, task_info)
+                update(plugin, db, base, task_info, keywords, link_id)
             else:
                 task_info.Progress.update(
                     task_info.Task, description=f"[underline blue]Adding {plugin.name}"
@@ -148,7 +158,7 @@ def main() -> None:
     start_time = datetime.datetime.now()
     # get rate limit
     max_length: int | None = None
-    dev = fetch_arguments() == "test"
+    dev = fetch_arguments() == "dev"
     if dev:
         max_length = 5
     rate_limit = octokit.get_rate_limit()
@@ -156,25 +166,27 @@ def main() -> None:
     console = Console()
 
     db, base, commits_from_db = fetch_seatable_data(console)
+    keywords, link_id = get_keyword_to_category(base)
+
     all_plugins = fetch_github_data(console, commits_from_db, max_length=max_length)
 
     if dev:
         test_plugin = {
-            "id": "test",
-            "name": "test",
-            "description": "test",
+            "id": "mara-test-database",
+            "name": "mara DATABASE TEST",
+            "description": "kindle gpt keyboard",
             "repo": "test",
             "author": "test",
             "fundingUrl": "test",
             "isDesktopOnly": False,
-            "last_commit_date": datetime.datetime.now(),
+            "last_commit_date": "2021-09-01",
             "etag": "test",
-            "status": "ACTIVE",
+            "status": State.ACTIVE,
         }
 
         all_plugins.append(PluginItems(**test_plugin))
 
-    track_plugins_update(all_plugins, db, base)
+    track_plugins_update(all_plugins, db, base, keywords, link_id)
     if not dev:
         track_plugin_deleted(console, all_plugins, db, base)
 
@@ -182,10 +194,13 @@ def main() -> None:
         delete_duplicate(db, base, console)
     else:  # find len of duplicate
         duplicate = db[db.duplicated("ID", keep=False)]
-        duplicated_ids = list(set(duplicate["id"].tolist()))
-        console.log(
-            f"Found {len(duplicated_ids)} duplicated plugins:\n• {"\n• ".join(duplicated_ids)} "
-        )
+        if len(duplicate) > 0:
+            duplicated_ids = list(set(duplicate["ID"].tolist()))
+            console.log(
+                f"Found {len(duplicated_ids)} duplicated plugins:\n• {"\n• ".join(duplicated_ids)} "
+            )
+        else:
+            console.log("No duplicated plugins found")
 
     end_time = datetime.datetime.now()
     diff_time_in_min = (end_time - start_time).total_seconds() / 60

@@ -2,6 +2,7 @@ import json
 import os
 import urllib.error
 import urllib.request
+from datetime import datetime
 from typing import Optional
 
 import requests
@@ -101,6 +102,10 @@ def get_repository_information(
         if response.status_code == 200:  # noqa: PLR2004
             data = response.json()
             last_commit_date = data[0]["commit"]["author"]["date"]
+            if isinstance(
+                last_commit_date, datetime
+            ):  # remove time from datetime object
+                last_commit_date = last_commit_date.strftime("%Y-%m-%d")
             etag = response.headers["ETag"].replace("W/", "")
     except Exception as e:
         print(e)
