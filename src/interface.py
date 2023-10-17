@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import StrEnum
 from typing import NamedTuple, Optional
 
 from pydantic import BaseModel
@@ -9,6 +10,16 @@ type UnDate = Optional[str | datetime]
 type UnBool = Optional[bool]
 type UnDict = Optional[dict | str]
 type UnInt = Optional[int]
+
+
+class State(StrEnum):
+    ARCHIVED = "ARCHIVED"
+    STALE = "STALE"
+    ACTIVE = "ACTIVE"
+    MAINTENANCE = "MAINTENANCE"
+
+
+type UnState = Optional[State]
 
 
 class EtagPlugins(BaseModel):
@@ -30,7 +41,7 @@ class PluginItems(BaseModel):
     isDesktopOnly: UnBool = None  # noqa
     last_commit_date: UnDate = None
     etag: UnString = None
-    status: UnString = None
+    status: UnState = None
 
 
 class Manifest(BaseModel):

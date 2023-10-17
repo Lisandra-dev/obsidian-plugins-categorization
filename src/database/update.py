@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import pandas as pd
-from interface import PluginItems, Task_Info
+from interface import PluginItems, State, Task_Info
 from seatable_api import Base
 from utils import generate_activity_tag
 
@@ -30,7 +30,7 @@ def update_old_entry(
         else None,
         last_commit_date=db["Last Commit Date"] if db["Last Commit Date"] else None,
         etag=str(db["ETAG"]) if db["ETAG"] else None,
-        status=str(db["Status"]) if db["Status"] else None,
+        status=State(db["Status"]) if db["Status"] else None,
     )
     error = bool(db["Error"]) if db["Error"] else False
 
@@ -95,9 +95,10 @@ def update_old_entry(
         to_update = True
         database_properties["ETAG"] = plugin.etag
     status = generate_activity_tag(plugin)
-    if (plugin_in_db.status != status) and (
-        plugin_in_db.status != "MAINTENANCE" or plugin.status != "ARCHIVED"
-    ):
+    if (plugin_in_db.status != status) and plugin_in_db.status not in [
+        State.ARCHIVED,
+        State.MAINTENANCE,
+    ]:
         console.log(f"[italic red]Mismatched status: {plugin_in_db.status} != {status}")
         to_update = True
         database_properties["Status"] = status
