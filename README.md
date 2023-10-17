@@ -2,6 +2,9 @@
 
 ![GitHub](https://img.shields.io/github/license/ramisedhom/obsidian-plugins-categorization)
 
+-> [TABLE (Read only)](https://cloud.seatable.io/dtable/external-links/37f27445cf4745178e06/)
+-> [IMPROVE (Need account)](https://cloud.seatable.io/dtable/links/9770a2f8544e4114b38d)
+
 ## Purpose
 
 Considering that [Obsidian.md](https://obsidian.md) has constantly increasing number of [third-party plugins](https://github.com/obsidianmd/obsidian-releases/blob/master/community-plugins.json) by community contributions, it becomes more difficult to find the proper plugin that help me optimize my notes workflow.
@@ -34,7 +37,7 @@ The database is fetch and completed using the package in `src/`. Each file have 
 
 ## Output
 
-- [Seatable database](https://cloud.seatable.io/dtable/links/eaf696faed944cbba838): you can access this database after creating account on Seatable for free.
+[Seatable database](https://cloud.seatable.io/dtable/external-links/37f27445cf4745178e06/)
 
 The DB have some hidden columns for developping purpose.
 

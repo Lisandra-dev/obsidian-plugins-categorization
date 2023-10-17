@@ -1,7 +1,0 @@
-[tool.ruff]
-	exclude = ["venv"]
-	select = ["PTH", "ANN", "N", "Q", "PL", "E", "F", "I"]
-	ignore = ["E501"]
-
-[tool.ruff.flake8-quotes]
-	inline-quotes = "double"

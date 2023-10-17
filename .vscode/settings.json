@@ -18,7 +18,10 @@
 		"**/.venv": true,
 		".venv": true,
 		"**/.ruff_cache": true,
-		".ruff_cache": true
+		".ruff_cache": true,
+		"src/__pycache__": true,
+		"**/__pycache__": true,
+		"__pycache__": true
 	},
 	"explorerExclude.backup": {},
 	"[python]": {
