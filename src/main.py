@@ -4,6 +4,7 @@ import sys
 
 import pandas as pd
 from database.add_new import add_new
+from database.automatic_category import get_linked_table
 from database.search import (
     delete_duplicate,
     get_etags_by_plugins,
@@ -62,7 +63,7 @@ def get_keyword_to_category(seatable: Base) -> tuple[pd.DataFrame, str]:
     table_name = "Keywords to Category"
     keywords = seatable.query("SELECT * FROM `" + table_name + "` LIMIT 10000")
     df_seatable = pd.json_normalize(keywords)
-    link_id = seatable.get_column_link_id(table_name, "Category Record")
+    link_id = get_linked_table(seatable)
     return df_seatable, link_id
 
 

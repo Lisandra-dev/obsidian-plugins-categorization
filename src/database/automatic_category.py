@@ -52,18 +52,18 @@ def add_new_keywords(
 
 
 def get_linked_table(seatable: Base) -> str:
-    return seatable.get_column_link_id("Categories", "Category")
+    return seatable.get_column_link_id("Categories", "Plugins Categorized")
 
 
 def update_links(
     seatable: Base, linked_id: str, keywords: list[Any], row_id: str
 ) -> None:
+    print(linked_id)
     for category in keywords:
-        rep = seatable.add_link(
+        seatable.add_link(
             linked_id,
             "Categories",
             "Plugins",
             category["row_id"],
             row_id,
         )
-        print(rep)

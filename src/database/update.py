@@ -78,18 +78,18 @@ def update(  # noqa
     must_update, database_properties = update_status(plugin_properties, must_update)
     must_update, database_properties = plugin_repo(plugin_properties, must_update)
 
-    update_keywords(
+    to_update = update_keywords(
         plugin_properties=plugin_properties,
         keywords=keywords,
         auto_suggest_in_database=db["Auto-Suggested Categories"],
         seatable=seatable,
         id=(link_id, db["_id"]),
     )
-
+    must_update.append(to_update)
+    print(must_update)
     if any(must_update):
         console.log(f"Updating {plugin_in_db.name}")
-        resp = seatable.update_row("Plugins", db["_id"], database_properties)
-        print(resp)
+        seatable.update_row("Plugins", db["_id"], database_properties)
     task_info.Progress.update(task_info.Task, advance=1)
 
 
@@ -277,13 +277,13 @@ def update_keywords(
     auto_suggest_in_database: list[Any],
     seatable: Base,
     id: tuple[str, str],
-) -> None:
+) -> bool:
     database_property, plugin, console = [
         plugin_properties.database_properties,
         plugin_properties.plugin,
         plugin_properties.console,
     ]
-
+    to_update = False
     auto_category: list[Any] = add_new_keywords(database_property, plugin, keywords)
     keywords_list: list[Any] = new_keywords_list(database_property, auto_category)
 
@@ -293,3 +293,5 @@ def update_keywords(
         )
         link_id, row_id = id
         update_links(seatable, link_id, auto_category, row_id)
+        to_update = True
+    return to_update
