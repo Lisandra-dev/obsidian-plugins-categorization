@@ -43,4 +43,7 @@ def convert_time(date: UnDate) -> str | None:
     if isinstance(date, datetime):
         return date.strftime("%Y-%m-%d")
     else:
-        return datetime.strptime(date, "%Y-%m-%d").strftime("%Y-%m-%d")
+        try:
+            return datetime.strptime(date, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d")
+        except ValueError:
+            return datetime.strptime(date, "%Y-%m-%d").strftime("%Y-%m-%d")
