@@ -13,6 +13,7 @@ ruff = "*"
 pydantic = "*"
 python-dotenv = "*"
 rich = "*"
+pygithub = "*"
 
 [requires]
 python_version = "3.12"
