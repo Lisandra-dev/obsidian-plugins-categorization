@@ -5,7 +5,7 @@ import pandas as pd
 import requests
 from interface import PluginItems, PluginProperties, State, Task_Info
 from seatable_api import Base
-from utils import generate_activity_tag, convert_time
+from utils import convert_time, generate_activity_tag
 
 from database.search import get_plugin_in_database
 
@@ -47,7 +47,7 @@ def update(  # noqa
         "Github Link": f"https://github.com/{plugin_in_db.repo}",
         "Author": plugin_in_db.author,
         "Funding URL": plugin_in_db.fundingUrl,
-        "Mobile friendly": not plugin_in_db.isDesktopOnly,
+        "Mobile friendly": plugin_in_db.isDesktopOnly,
         "Last Commit Date": plugin_in_db.last_commit_date,
         "ETAG": plugin_in_db.etag,
         "Status": str(plugin_in_db.status),
@@ -103,11 +103,13 @@ def update_desktop_only(
     must_update: list[bool],
 ) -> tuple[list[bool], dict[str, Any]]:
     to_update = False
-    database_properties = plugin_properties.database_properties
-    plugin_in_db = plugin_properties.seatable
-    plugin = plugin_properties.plugin
-    console = plugin_properties.console
-    if (plugin_in_db.isDesktopOnly != (not plugin.isDesktopOnly)) and not error:
+    database_properties, plugin, plugin_in_db, console = [
+        plugin_properties.database_properties,
+        plugin_properties.plugin,
+        plugin_properties.seatable,
+        plugin_properties.console,
+    ]
+    if (plugin_in_db.isDesktopOnly != plugin.isDesktopOnly) and not error:
         console.log(
             f"[italic red]Mismatched isDesktopOnly: {plugin_in_db.isDesktopOnly} != {not(plugin.isDesktopOnly)}"
         )
