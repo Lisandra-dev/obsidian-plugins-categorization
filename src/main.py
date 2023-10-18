@@ -153,7 +153,9 @@ def main(dev: bool, archive: bool) -> None:
     if dev:
         max_length = 5
     rate_limit = octokit.get_rate_limit()
-    print(f"Starting with: dev={dev}, archive={archive}")
+    print(
+        f"[underline italic]Starting with: dev={dev}, archive={archive} at {start_time}"
+    )
 
     print(f"Rate limit: {rate_limit.core.remaining}/{rate_limit.core.limit}")
     console = Console()
