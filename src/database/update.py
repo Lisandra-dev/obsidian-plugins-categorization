@@ -86,7 +86,6 @@ def update(  # noqa
         id=(link_id, db["_id"]),
     )
     must_update.append(to_update)
-    print(must_update)
     if any(must_update):
         console.log(f"Updating {plugin_in_db.name}")
         seatable.update_row("Plugins", db["_id"], database_properties)

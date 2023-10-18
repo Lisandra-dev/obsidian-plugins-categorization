@@ -15,7 +15,7 @@ from database.update import update
 from dotenv import load_dotenv
 from get_plugins import get_raw_data
 from github import Auth, Github
-from interface import EtagPlugins, PluginItems, State, Task_Info, UnInt
+from interface import EtagPlugins, PluginItems, Task_Info, UnInt, test_plugin
 from rich import print
 from rich.console import Console
 from rich.progress import Progress
@@ -172,20 +172,7 @@ def main() -> None:
     all_plugins = fetch_github_data(console, commits_from_db, max_length=max_length)
 
     if dev:
-        test_plugin = {
-            "id": "mara-test-database",
-            "name": "mara DATABASE TEST",
-            "description": "kindle gpt keyboard",
-            "repo": "test",
-            "author": "test",
-            "fundingUrl": "test",
-            "isDesktopOnly": False,
-            "last_commit_date": "2021-09-01",
-            "etag": "test",
-            "status": State.ACTIVE,
-        }
-
-        all_plugins.append(PluginItems(**test_plugin))
+        all_plugins.append(test_plugin)
 
     track_plugins_update(all_plugins, db, base, keywords, link_id)
     if not dev:

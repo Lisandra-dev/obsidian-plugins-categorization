@@ -70,3 +70,17 @@ class Manifest(BaseModel):
 class RepositoryInformationDate(BaseModel):
     last_commit_date: UnDate = None
     etag: UnString = None
+
+
+test_plugin: PluginItems = PluginItems(
+    id="mara-test-database",
+    name="mara DATABASE TEST",
+    description="kindle gpt keyboard",
+    repo="test",
+    author="test",
+    fundingUrl="test",
+    isDesktopOnly=False,
+    last_commit_date="2023-09-01",
+    etag="test",
+    status=State.ACTIVE,
+)
