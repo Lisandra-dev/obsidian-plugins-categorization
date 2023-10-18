@@ -4,9 +4,6 @@ from utils import convert_time, generate_activity_tag
 
 
 def add_new(plugin: PluginItems, seatable: Base) -> None:
-    mobile = not plugin.isDesktopOnly
-    last_commit_date = convert_time(plugin.last_commit_date)
-
     new_database_entry = {
         "ID": plugin.id,
         "Name": plugin.name,
@@ -14,8 +11,8 @@ def add_new(plugin: PluginItems, seatable: Base) -> None:
         "Github Link": f"https://github.com/{plugin.repo}",
         "Author": plugin.author,
         "Funding URL": plugin.fundingUrl,
-        "Mobile friendly": mobile,
-        "Last Commit Date": last_commit_date,  # convert to string
+        "Mobile friendly": not plugin.isDesktopOnly,
+        "Last Commit Date": convert_time(plugin.last_commit_date),
         "ETAG": plugin.etag,
         "Status": State(generate_activity_tag(plugin)),
         "Error": False,

@@ -2,7 +2,6 @@ import json
 import os
 import urllib.error
 import urllib.request
-from datetime import datetime
 from typing import Optional
 
 import requests
@@ -83,9 +82,6 @@ def get_repository_information(
     last_commit_date: UnDate = None,
 ) -> RepositoryInformationDate:
     try:
-        # call the commits info using octokit + the etag from the database
-        # if the etag is not None
-        # no support for etag in GithubPy, use request as fallback
         if plugin.repo:
             owner = plugin.repo.split("/")[0]
             repo = plugin.repo.split("/")[1]
