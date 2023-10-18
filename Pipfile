@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-
+rich-argparse = "*"
 
 [dev-packages]
 seatable-api = "*"
@@ -14,11 +14,10 @@ pydantic = "*"
 python-dotenv = "*"
 rich = "*"
 
-
 [requires]
 python_version = "3.12"
 
 [scripts]
-dev = "python src/main.py dev"
-test = "python src/main.py test"
-start = "python src/main.py prod"
+dev = "python src/main.py -d"
+start = "python src/main.py"
+archive = "python src/main.py -a"

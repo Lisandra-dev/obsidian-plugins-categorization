@@ -1,7 +1,9 @@
+import os
 from datetime import datetime
 from typing import Any
 
 import pandas as pd
+import requests
 from interface import PluginItems, PluginProperties, State, Task_Info
 from seatable_api import Base
 from utils import generate_activity_tag
@@ -18,6 +20,7 @@ def update(  # noqa
     task_info: Task_Info,
     keywords: pd.DataFrame,
     link_id: str,
+    archive: bool = False,
 ) -> None:
     db = get_plugin_in_database(database, plugin).iloc[0]
     plugin_in_db = PluginItems(
@@ -77,7 +80,10 @@ def update(  # noqa
     must_update, database_properties = update_etag(plugin_properties, must_update)
     must_update, database_properties = update_status(plugin_properties, must_update)
     must_update, database_properties = plugin_repo(plugin_properties, must_update)
-
+    if archive:
+        must_update, database_properties = update_archived(
+            plugin_properties, must_update
+        )
     to_update = update_keywords(
         plugin_properties=plugin_properties,
         keywords=keywords,
@@ -294,3 +300,37 @@ def update_keywords(
         update_links(seatable, link_id, auto_category, row_id)
         to_update = True
     return to_update
+
+
+def update_archived(
+    plugin_info: PluginProperties, must_update: list[bool]
+) -> tuple[list[bool], dict[str, Any]]:
+    to_update = False
+    database_property, plugin, plugin_in_db, console = [
+        plugin_info.database_properties,
+        plugin_info.plugin,
+        plugin_info.seatable,
+        plugin_info.console,
+    ]
+
+    # get archived state from Github API
+    if plugin.repo:
+        owner = plugin.repo.split("/")[0]
+        repo = plugin.repo.split("/")[1]
+    else:
+        raise Exception("No repo found")
+    url = f"https://api.github.com/repos/{owner}/{repo}"
+    header = {
+        "Accept": "application/vnd.github.v3+json",
+        "Authorization": f"Bearer {os.getenv("GITHUB_TOKEN")}",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    response = requests.get(url, headers=header)
+    if response.status_code == 200:  # noqa: PLR2004
+        data = response.json()
+        if data["archived"] and plugin_in_db.status != State.ARCHIVED:
+            console.log(f"[italic red]Archived: {plugin_in_db.name}")
+            to_update = True
+            database_property["Status"] = str(State.ARCHIVED)
+    must_update.append(to_update)
+    return (must_update, database_property)

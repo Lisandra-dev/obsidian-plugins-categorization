@@ -1,6 +1,6 @@
+import argparse
 import datetime
 import os
-import sys
 
 import pandas as pd
 from database.add_new import add_new
@@ -19,22 +19,20 @@ from interface import EtagPlugins, PluginItems, Task_Info, UnInt, test_plugin
 from rich import print
 from rich.console import Console
 from rich.progress import Progress
+from rich_argparse import RichHelpFormatter
 from seatable_api import Base
-from typing_extensions import Literal
 from utils import get_len_of_plugin
 
 load_dotenv()
 
 
 def get_database(
-    env: Literal["dev", "prod", "test", None] = None
+    dev: bool = False,
 ) -> tuple[pd.DataFrame, Base]:
     server_url = "https://cloud.seatable.io"
     token = os.getenv("SEATABLE_API_TOKEN_PROD")
-    if env == "dev":
+    if dev:
         token = os.getenv("SEATABLE_API_TOKEN_DEV")
-    elif env == "test":
-        token = os.getenv("SEATABLE_API_TOKEN_TESTS")
 
     if not token:
         raise ValueError("No token found")
@@ -50,10 +48,10 @@ def get_database(
 
 
 def fetch_seatable_data(
-    console: Console
+    console: Console, dev: bool
 ) -> tuple[pd.DataFrame, Base, list[EtagPlugins]]:
     with console.status("[bold green]Fetching data from SeaTable", spinner="dots"):
-        db, base = get_database(fetch_arguments())
+        db, base = get_database(dev)
         commits_from_db = get_etags_by_plugins(db)
     console.log(f"Found {len(db)} plugins in the database")
     return db, base, commits_from_db
@@ -65,14 +63,6 @@ def get_keyword_to_category(seatable: Base) -> tuple[pd.DataFrame, str]:
     df_seatable = pd.json_normalize(keywords)
     link_id = get_linked_table(seatable)
     return df_seatable, link_id
-
-
-def fetch_arguments() -> Literal["dev", "prod", "test", None]:
-    env = "prod"
-    if len(sys.argv) > 1:
-        if sys.argv[1] == "dev" or sys.argv[1] == "test":
-            env = "dev"
-    return env
 
 
 def fetch_github_data(
@@ -99,12 +89,13 @@ def fetch_github_data(
     return all_plugins
 
 
-def track_plugins_update(
+def track_plugins_update(  # noqa
     all_plugins: list[PluginItems],
     db: pd.DataFrame,
     base: Base,
     keywords: pd.DataFrame,
     link_id: str,
+    archive: bool = False,
 ) -> None:
     with Progress() as progress:
         update_task = progress.add_task(
@@ -117,7 +108,7 @@ def track_plugins_update(
                 task_info.Progress.update(
                     task_info.Task, description=f"[italic green]Updating {plugin.name}"
                 )
-                update(plugin, db, base, task_info, keywords, link_id)
+                update(plugin, db, base, task_info, keywords, link_id, archive=archive)
             else:
                 task_info.Progress.update(
                     task_info.Task, description=f"[underline blue]Adding {plugin.name}"
@@ -153,20 +144,19 @@ def track_plugin_deleted(  # noqa
         console.log("No deleted plugins found")
 
 
-def main() -> None:
+def main(dev: bool, archive: bool) -> None:
     auth = Auth.Token(os.getenv("GITHUB_TOKEN"))  # type: ignore
     octokit: Github = Github(auth=auth)
     start_time = datetime.datetime.now()
     # get rate limit
     max_length: int | None = None
-    dev = fetch_arguments() == "dev"
     if dev:
         max_length = 5
     rate_limit = octokit.get_rate_limit()
     print(f"Rate limit: {rate_limit.core.remaining}/{rate_limit.core.limit}")
     console = Console()
 
-    db, base, commits_from_db = fetch_seatable_data(console)
+    db, base, commits_from_db = fetch_seatable_data(console, dev)
     keywords, link_id = get_keyword_to_category(base)
 
     all_plugins = fetch_github_data(console, commits_from_db, max_length=max_length)
@@ -196,4 +186,22 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description="Update the plugins database",
+        formatter_class=RichHelpFormatter,
+    )
+    parser.add_argument(
+        "-d",
+        "--dev",
+        action="store_true",
+        help="Run the script in dev mode (use the Dev API token)",
+    )
+    parser.add_argument(
+        "-a",
+        "--archive",
+        action="store_true",
+        help="Search archived plugins, not in the main because of the rate limit",
+    )
+    args = parser.parse_args()
+
+    main(args.dev, args.archive)
