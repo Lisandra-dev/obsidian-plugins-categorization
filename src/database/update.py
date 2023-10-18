@@ -312,6 +312,7 @@ def update_archived(
         plugin_info.seatable,
         plugin_info.console,
     ]
+    console.log("Triggered archive update")
 
     # get archived state from Github API
     if plugin.repo:
