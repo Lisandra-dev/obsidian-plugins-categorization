@@ -3,7 +3,7 @@ import urllib.request
 from datetime import datetime
 from typing import Any
 
-from interface import PluginItems, State
+from interface import PluginItems, State, UnDate
 from seatable_api.date_utils import dateutils
 
 
@@ -35,3 +35,12 @@ def unique_category(new_category: list[Any]) -> list[Any]:
             unique_data.append(item)
             seen_row_id.add(item["row_id"])
     return unique_data
+
+
+def convert_time(date: UnDate) -> str | None:
+    if not date:
+        return None
+    if isinstance(date, datetime):
+        return date.strftime("%Y-%m-%d")
+    else:
+        return datetime.strptime(date, "%Y-%m-%d").strftime("%Y-%m-%d")

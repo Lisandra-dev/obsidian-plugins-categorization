@@ -1,12 +1,11 @@
 import os
-from datetime import datetime
 from typing import Any
 
 import pandas as pd
 import requests
 from interface import PluginItems, PluginProperties, State, Task_Info
 from seatable_api import Base
-from utils import generate_activity_tag
+from utils import generate_activity_tag, convert_time
 
 from database.search import get_plugin_in_database
 
@@ -193,12 +192,8 @@ def update_last_date(
         plugin_info.console,
     ]
 
-    if isinstance(plugin.last_commit_date, datetime):
-        plugin.last_commit_date = plugin.last_commit_date.strftime("%Y-%m-%d")
-    if isinstance(plugin_in_db.last_commit_date, datetime):
-        plugin_in_db.last_commit_date = plugin_in_db.last_commit_date.strftime(
-            "%Y-%m-%d"
-        )
+    plugin.last_commit_date = convert_time(plugin.last_commit_date)
+    plugin_in_db.last_commit_date = convert_time(plugin_in_db.last_commit_date)
 
     if plugin_in_db.last_commit_date != plugin.last_commit_date:
         console.log(

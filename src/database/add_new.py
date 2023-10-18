@@ -1,15 +1,11 @@
-from datetime import datetime
-
 from interface import PluginItems, State
 from seatable_api import Base
-from utils import generate_activity_tag
+from utils import convert_time, generate_activity_tag
 
 
 def add_new(plugin: PluginItems, seatable: Base) -> None:
     mobile = not plugin.isDesktopOnly
-    last_commit_date = plugin.last_commit_date
-    if isinstance(last_commit_date, datetime):
-        last_commit_date = last_commit_date.strftime("%Y-%m-%d")
+    last_commit_date = convert_time(plugin.last_commit_date)
 
     new_database_entry = {
         "ID": plugin.id,
