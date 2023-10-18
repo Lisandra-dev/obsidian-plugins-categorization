@@ -104,9 +104,9 @@ def track_plugins_update(  # noqa
         task_info = Task_Info(progress, update_task)
         for plugin in all_plugins:
             if plugin_is_in_database(db, plugin):
-                # console.print(f"• Updating {plugin.name}")
                 task_info.Progress.update(
-                    task_info.Task, description=f"[italic green]Updating {plugin.name}"
+                    task_info.Task,
+                    description=f"[italic green]Checking [{plugin.name}]",
                 )
                 update(plugin, db, base, task_info, keywords, link_id, archive=archive)
             else:
