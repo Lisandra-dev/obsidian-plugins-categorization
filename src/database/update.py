@@ -108,9 +108,9 @@ def update_desktop_only(
     plugin_in_db = plugin_properties.seatable
     plugin = plugin_properties.plugin
     console = plugin_properties.console
-    if (plugin_in_db.isDesktopOnly != plugin.isDesktopOnly) and not error:
+    if (plugin_in_db.isDesktopOnly != (not plugin.isDesktopOnly)) and not error:
         console.log(
-            f"[italic red]Mismatched isDesktopOnly: {plugin_in_db.isDesktopOnly} != {plugin.isDesktopOnly}"
+            f"[italic red]Mismatched isDesktopOnly: {plugin_in_db.isDesktopOnly} != {not(plugin.isDesktopOnly)}"
         )
         # not that the value is invert; if the plugin is mobile friendly, the value is False
         to_update = True
