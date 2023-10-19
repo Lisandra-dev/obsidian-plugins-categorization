@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-rich-argparse = "*"
 
 [dev-packages]
 seatable-api = "*"
@@ -14,6 +13,8 @@ pydantic = "*"
 python-dotenv = "*"
 rich = "*"
 pygithub = "*"
+rich-argparse = "*"
+
 
 [requires]
 python_version = "3.12"
