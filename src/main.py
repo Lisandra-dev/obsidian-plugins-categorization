@@ -168,7 +168,7 @@ def main(dev: bool, archive: bool) -> None:
     if dev:
         all_plugins.append(test_plugin)
 
-    track_plugins_update(all_plugins, db, base, keywords, link_id)
+    track_plugins_update(all_plugins, db, base, keywords, link_id, archive)
     if not dev:
         track_plugin_deleted(console, all_plugins, db, base)
 

@@ -33,7 +33,7 @@ def update(  # noqa
         fundingUrl=str(db["Funding URL"]) if db["Funding URL"] else None,
         isDesktopOnly=not bool(db["Mobile friendly"])
         if db["Mobile friendly"]
-        else None,
+        else False,
         last_commit_date=db["Last Commit Date"] if db["Last Commit Date"] else None,
         etag=str(db["ETAG"]) if db["ETAG"] else None,
         status=State(db["Status"]) if db["Status"] else None,
@@ -309,8 +309,6 @@ def update_archived(
         plugin_info.seatable,
         plugin_info.console,
     ]
-    console.log("Triggered archive update")
-
     # get archived state from Github API
     if plugin.repo:
         owner = plugin.repo.split("/")[0]
