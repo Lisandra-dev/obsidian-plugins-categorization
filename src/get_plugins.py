@@ -46,7 +46,9 @@ def get_raw_data(
     for plugin in data:
         task_info.Progress.update(task_info.Task, description=f"Fetching {plugin.name}")
         plugin_manifest = manifest(plugin)
-        plugin.isDesktopOnly = plugin_manifest.isDesktopOnly
+        plugin.isDesktopOnly = (
+            plugin_manifest.isDesktopOnly if plugin_manifest.isDesktopOnly else True
+        )  # is None => Desktop Only plugin because too old
         plugin.fundingUrl = first_funding_url(plugin_manifest)
         db_plugin_date = [x for x in commit_date if x.plugin_id == plugin.id]
         etag = None

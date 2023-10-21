@@ -47,7 +47,7 @@ def update(  # noqa
         "Github Link": f"https://github.com/{plugin_in_db.repo}",
         "Author": plugin_in_db.author,
         "Funding URL": plugin_in_db.fundingUrl,
-        "Mobile friendly": plugin_in_db.isDesktopOnly,
+        "Mobile friendly": not plugin_in_db.isDesktopOnly,
         "Last Commit Date": plugin_in_db.last_commit_date,
         "ETAG": plugin_in_db.etag,
         "Status": str(plugin_in_db.status),
