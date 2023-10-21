@@ -2,6 +2,8 @@ import json
 import os
 import urllib.error
 import urllib.request
+from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 import requests
@@ -47,7 +49,9 @@ def get_raw_data(
         task_info.Progress.update(task_info.Task, description=f"Fetching {plugin.name}")
         plugin_manifest = manifest(plugin)
         plugin.isDesktopOnly = (
-            plugin_manifest.isDesktopOnly if plugin_manifest.isDesktopOnly else True
+            plugin_manifest.isDesktopOnly
+            if plugin_manifest.isDesktopOnly is not None
+            else True
         )  # is None => Desktop Only plugin because too old
         plugin.fundingUrl = first_funding_url(plugin_manifest)
         db_plugin_date = [x for x in commit_date if x.plugin_id == plugin.id]
@@ -106,3 +110,61 @@ def get_repository_information(
     except Exception as e:
         print(e)
     return RepositoryInformationDate(last_commit_date=last_commit_date, etag=etag)
+
+
+def save_plugin(plugins: list[PluginItems]) -> None:
+    """
+    Save the plugins in a json file
+    """
+    file_path = Path("plugins.json")
+    with file_path.open("w", encoding="utf-8") as f:
+        json.dump([x.model_dump() for x in plugins], f, ensure_ascii=False, indent=4)
+
+
+def read_plugin_json(
+    commit_date: list[EtagPlugins],
+    task_info: Task_Info,
+    max_length: Optional[int] = None,
+) -> tuple[list[PluginItems], Task_Info]:
+    """
+    Read the json file and return a list of PluginItems
+    """
+    # get creation date of the json file
+
+    file_path = Path("plugins.json")
+    if file_path.exists():
+        creation_date = file_path.stat().st_mtime
+        now = datetime.now().timestamp()
+        # if the file is older than 1 day, we update it
+        if now - creation_date > 86400:  # noqa: PLR2004
+            task_info.Progress.update(
+                task_info.Task, description="File too old : Fetching new data"
+            )
+            plugins, task_info = get_raw_data(commit_date, task_info, max_length)
+            save_plugin(plugins)
+            return plugins, task_info
+        else:
+            with file_path.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+            # verify empty file
+            if len(data) == 0:
+                task_info.Progress.update(
+                    task_info.Task, description="File is empty : Fetching new data"
+                )
+                plugins, task_info = get_raw_data(commit_date, task_info, max_length)
+                save_plugin(plugins)
+                return plugins, task_info
+            else:
+                task_info.Progress.update(
+                    task_info.Task, description="File OK : Reading file"
+                )
+                plugins = [PluginItems(**x) for x in data]
+                task_info.Progress.remove_task(task_info.Task)
+                return plugins, task_info
+    else:
+        task_info.Progress.update(
+            task_info.Task, description="File not found : Fetching new data"
+        )
+        plugins, task_info = get_raw_data(commit_date, task_info, max_length)
+        save_plugin(plugins)
+        return plugins, task_info

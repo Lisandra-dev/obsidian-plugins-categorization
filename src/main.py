@@ -13,7 +13,7 @@ from database.search import (
 )
 from database.update import update
 from dotenv import load_dotenv
-from get_plugins import get_raw_data
+from get_plugins import read_plugin_json
 from github import Auth, Github
 from interface import EtagPlugins, PluginItems, Task_Info, UnInt, test_plugin
 from rich import print
@@ -82,7 +82,7 @@ def fetch_github_data(
 
         task_info = Task_Info(progress, plugin_progress)
         while not task_info.Progress.finished:
-            all_plugins, task_info = get_raw_data(
+            all_plugins, task_info = read_plugin_json(
                 commits_from_db, task_info, max_length=max_length
             )  # noqa
     console.log(f"Found {len(all_plugins)} plugins on GitHub")
