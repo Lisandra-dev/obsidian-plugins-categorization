@@ -33,7 +33,7 @@ def update(  # noqa
         fundingUrl=str(db["Funding URL"]) if db["Funding URL"] else None,
         isDesktopOnly=not bool(db["Mobile friendly"])
         if db["Mobile friendly"]
-        else False,
+        else True,
         last_commit_date=db["Last Commit Date"] if db["Last Commit Date"] else None,
         etag=str(db["ETAG"]) if db["ETAG"] else None,
         status=State(db["Status"]) if db["Status"] else None,
@@ -111,7 +111,7 @@ def update_desktop_only(
     ]
     if (plugin_in_db.isDesktopOnly != plugin.isDesktopOnly) and not error:
         console.log(
-            f"[italic red]Mismatched isDesktopOnly: {plugin_in_db.isDesktopOnly} != {not(plugin.isDesktopOnly)}"
+            f"[italic red]Mismatched isDesktopOnly: {plugin_in_db.isDesktopOnly} != {plugin.isDesktopOnly}"
         )
         # not that the value is invert; if the plugin is mobile friendly, the value is False
         to_update = True
