@@ -104,11 +104,13 @@ def track_plugins_update(  # noqa
         )
         task_info = Task_Info(progress, update_task)
         for plugin in all_plugins:
-            if plugin_is_in_database(db, plugin) and not new_only:
+            if plugin_is_in_database(db, plugin):
                 task_info.Progress.update(
                     task_info.Task,
                     description=f"[italic green]Checking [{plugin.name}]",
                 )
+                if new_only:
+                    continue # skip to next plugin if new_only is True
                 try:
                     update(
                         plugin, db, base, task_info, keywords, link_id, archive=archive
