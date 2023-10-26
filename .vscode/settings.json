@@ -27,5 +27,6 @@
 	"[python]": {
 		"editor.defaultFormatter": "charliermarsh.ruff"
 	},
-	"python.formatting.provider": "none"
+	"python.formatting.provider": "none",
+	"i18n-ally.localesPaths": []
 }

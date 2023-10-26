@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 from datetime import datetime
@@ -112,13 +113,19 @@ def get_repository_information(
     return RepositoryInformationDate(last_commit_date=last_commit_date, etag=etag)
 
 
-def save_plugin(plugins: list[PluginItems]) -> None:
+def save_plugin(plugins: list[PluginItems], task_info: Task_Info) -> None:
     """
     Save the plugins in a json file
     """
     file_path = Path("plugins.json")
+    plugins_json = json.dumps(
+        [x.model_dump() for x in plugins], ensure_ascii=False, indent=4
+    )
+    plugins_json = re.sub(r"\"etag\": \"\\\"(.*)\\\"\",", '"etag": "\\1"', plugins_json)
     with file_path.open("w", encoding="utf-8") as f:
-        json.dump([x.model_dump() for x in plugins], f, ensure_ascii=False, indent=4)
+        f.write(plugins_json)
+    console = task_info.Progress.console
+    console.log(f"Plugins saved in {file_path}")
 
 
 def read_plugin_json(
@@ -141,7 +148,7 @@ def read_plugin_json(
                 task_info.Task, description="File too old : Fetching new data"
             )
             plugins, task_info = get_raw_data(commit_date, task_info, max_length)
-            save_plugin(plugins)
+            save_plugin(plugins, task_info)
             return plugins, task_info
         else:
             with file_path.open("r", encoding="utf-8") as f:
@@ -152,7 +159,7 @@ def read_plugin_json(
                     task_info.Task, description="File is empty : Fetching new data"
                 )
                 plugins, task_info = get_raw_data(commit_date, task_info, max_length)
-                save_plugin(plugins)
+                save_plugin(plugins, task_info)
                 return plugins, task_info
             else:
                 task_info.Progress.update(
@@ -166,5 +173,5 @@ def read_plugin_json(
             task_info.Task, description="File not found : Fetching new data"
         )
         plugins, task_info = get_raw_data(commit_date, task_info, max_length)
-        save_plugin(plugins)
+        save_plugin(plugins, task_info)
         return plugins, task_info
