@@ -36,7 +36,7 @@ def update(  # noqa
         else True,
         last_commit_date=db["Last Commit Date"] if db["Last Commit Date"] else None,
         etag=str(db["ETAG"]) if db["ETAG"] else None,
-        status=State(db["Status"]) if db["Status"] else None,
+        status=State(value=db["Status"]) if db["Status"] else None,
     )
     error = bool(db["Error"]) if db["Error"] else False
     console = task_info.Progress.console

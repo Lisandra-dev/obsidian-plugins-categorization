@@ -96,6 +96,7 @@ def track_plugins_update(  # noqa
     keywords: pd.DataFrame,
     link_id: str,
     archive: bool = False,
+    new_only: bool = False,
 ) -> None:
     with Progress() as progress:
         update_task = progress.add_task(
@@ -103,12 +104,21 @@ def track_plugins_update(  # noqa
         )
         task_info = Task_Info(progress, update_task)
         for plugin in all_plugins:
-            if plugin_is_in_database(db, plugin):
+            if plugin_is_in_database(db, plugin) and not new_only:
                 task_info.Progress.update(
                     task_info.Task,
                     description=f"[italic green]Checking [{plugin.name}]",
                 )
-                update(plugin, db, base, task_info, keywords, link_id, archive=archive)
+                try:
+                    update(
+                        plugin, db, base, task_info, keywords, link_id, archive=archive
+                    )
+                except Exception as e:
+                    console = task_info.Progress.console
+                    console.log(
+                        f"[bold red]Error with {plugin.name}[/bold red]: [underline]{e}"
+                    )
+                    task_info.Progress.update(task_info.Task, advance=1)
             else:
                 task_info.Progress.update(
                     task_info.Task, description=f"[underline blue]Adding {plugin.name}"
@@ -144,7 +154,7 @@ def track_plugin_deleted(  # noqa
         console.log("No deleted plugins found")
 
 
-def main(dev: bool, archive: bool) -> None:
+def main(dev: bool, archive: bool, new: bool) -> None:
     auth = Auth.Token(os.getenv("GITHUB_TOKEN"))  # type: ignore
     octokit: Github = Github(auth=auth)
     start_time = datetime.datetime.now()
@@ -154,7 +164,7 @@ def main(dev: bool, archive: bool) -> None:
         max_length = 5
     rate_limit = octokit.get_rate_limit()
     print(
-        f"[underline italic]Starting with: dev={dev}, archive={archive} at {start_time}"
+        f"[underline italic]Starting with: dev={dev}, archive={archive}, new={new} at {start_time}"
     )
 
     print(f"Rate limit: {rate_limit.core.remaining}/{rate_limit.core.limit}")
@@ -168,7 +178,7 @@ def main(dev: bool, archive: bool) -> None:
     if dev:
         all_plugins.append(test_plugin)
 
-    track_plugins_update(all_plugins, db, base, keywords, link_id, archive)
+    track_plugins_update(all_plugins, db, base, keywords, link_id, archive, new)
     if not dev:
         track_plugin_deleted(console, all_plugins, db, base)
 
@@ -206,6 +216,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Search archived plugins, not in the main because of the rate limit",
     )
+    parser.add_argument("-n", "--new", action="store_true", help="Add new plugins only")
     args = parser.parse_args()
 
-    main(args.dev, args.archive)
+    main(args.dev, args.archive, args.new)
