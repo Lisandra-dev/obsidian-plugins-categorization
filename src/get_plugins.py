@@ -121,7 +121,12 @@ def save_plugin(plugins: list[PluginItems], task_info: Task_Info) -> None:
     plugins_json = json.dumps(
         [x.model_dump() for x in plugins], ensure_ascii=False, indent=4
     )
-    plugins_json = re.sub(r"\"etag\": \"\\\"(.*)\\\"\",", '"etag": "\\1"', plugins_json)
+    regex = r"\"etag\": \"\\\"(.*)\\\"\","
+    subst = '"etag": "\\1"'
+    plugins_json = re.sub(regex, subst, plugins_json)
+    plugins_json = re.sub(
+        r"\"etag\": \"\\\"(.*)\\\"\",", '"etag": "\\1",', string=plugins_json
+    )
     with file_path.open("w", encoding="utf-8") as f:
         f.write(plugins_json)
     console = task_info.Progress.console
