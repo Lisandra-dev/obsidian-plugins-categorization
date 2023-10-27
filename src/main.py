@@ -69,6 +69,7 @@ def fetch_github_data(
     console: Console,
     commits_from_db: list[EtagPlugins],
     max_length: UnInt = None,
+    force: bool = False,
 ) -> list[PluginItems]:
     len_plugins = get_len_of_plugin()
     if max_length:
@@ -83,7 +84,7 @@ def fetch_github_data(
         task_info = Task_Info(progress, plugin_progress)
         while not task_info.Progress.finished:
             all_plugins, task_info = read_plugin_json(
-                commits_from_db, task_info, max_length=max_length
+                commits_from_db, task_info, max_length=max_length, force=force
             )  # noqa
     console.log(f"Found {len(all_plugins)} plugins on GitHub")
     return all_plugins
@@ -110,7 +111,7 @@ def track_plugins_update(  # noqa
                     description=f"[italic green]Checking [{plugin.name}]",
                 )
                 if new_only:
-                    continue # skip to next plugin if new_only is True
+                    continue  # skip to next plugin if new_only is True
                 try:
                     update(
                         plugin, db, base, task_info, keywords, link_id, archive=archive
@@ -156,7 +157,7 @@ def track_plugin_deleted(  # noqa
         console.log("No deleted plugins found")
 
 
-def main(dev: bool, archive: bool, new: bool) -> None:
+def main(dev: bool, archive: bool, new: bool, force: bool) -> None:
     auth = Auth.Token(os.getenv("GITHUB_TOKEN"))  # type: ignore
     octokit: Github = Github(auth=auth)
     start_time = datetime.datetime.now()
@@ -219,6 +220,12 @@ if __name__ == "__main__":
         help="Search archived plugins, not in the main because of the rate limit",
     )
     parser.add_argument("-n", "--new", action="store_true", help="Add new plugins only")
+    parser.add_argument(
+        "-f",
+        "--force",
+        action="store_true",
+        help="Force update, create a new plugins.json file",
+    )
     args = parser.parse_args()
 
-    main(args.dev, args.archive, args.new)
+    main(args.dev, args.archive, args.new, args.force)

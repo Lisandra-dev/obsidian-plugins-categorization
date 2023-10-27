@@ -137,6 +137,7 @@ def read_plugin_json(
     commit_date: list[EtagPlugins],
     task_info: Task_Info,
     max_length: Optional[int] = None,
+    force: bool = False,
 ) -> tuple[list[PluginItems], Task_Info]:
     """
     Read the json file and return a list of PluginItems
@@ -144,7 +145,7 @@ def read_plugin_json(
     # get creation date of the json file
 
     file_path = Path("plugins.json")
-    if file_path.exists():
+    if file_path.exists() and not force:
         creation_date = file_path.stat().st_mtime
         now = datetime.now().timestamp()
         # if the file is older than 1 day, we update it
