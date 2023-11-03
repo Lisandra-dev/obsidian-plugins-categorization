@@ -86,7 +86,7 @@ def fetch_github_data(
             all_plugins, task_info = read_plugin_json(
                 commits_from_db, task_info, max_length=max_length, force=force
             )  # noqa
-    console.log(f"Found {len(all_plugins)} plugins on GitHub")
+    console.log(f"Fetched {len(all_plugins)} plugins")
     return all_plugins
 
 
@@ -167,7 +167,7 @@ def main(dev: bool, archive: bool, new: bool, force: bool) -> None:
         max_length = 5
     rate_limit = octokit.get_rate_limit()
     print(
-        f"[underline italic]Starting with: dev={dev}, archive={archive}, new={new} at {start_time}"
+        f"[underline italic]Starting with:[/underline italic]:\n• Dev: {dev}\n• Archive: {archive}\n• New: {new}\n• Force: {force}\n [italic]{start_time.strftime('%d/%m/%Y - %H:%M:%S')}[/italic]"
     )
 
     print(f"Rate limit: {rate_limit.core.remaining}/{rate_limit.core.limit}")
