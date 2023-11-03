@@ -113,7 +113,7 @@ def update_desktop_only(
     ]
     if (plugin_in_db.isDesktopOnly != plugin.isDesktopOnly) and not error:
         console.log(
-            f"[italic red]Mismatched isDesktopOnly: {plugin_in_db.isDesktopOnly} != {plugin.isDesktopOnly}"
+            f"[italic red]Mismatched isDesktopOnly: (in db) {plugin_in_db.isDesktopOnly} != (plugin) {plugin.isDesktopOnly}"
         )
         # not that the value is invert; if the plugin is mobile friendly, the value is False
         to_update = True
@@ -135,7 +135,7 @@ def update_author(
 
     if plugin_in_db.author != plugin.author:
         console.log(
-            f"[italic red]Mismatched author: {plugin_in_db.author} != {plugin.author}"
+            f"[italic red]Mismatched author: (in db) {plugin_in_db.author} != (plugin) {plugin.author}"
         )
         to_update = True
         database_property["Author"] = plugin.author
@@ -156,7 +156,7 @@ def update_description(
 
     if (plugin_in_db.description != plugin.description) and plugin.description:
         console.log(
-            f"[italic red]Mismatched description: {plugin_in_db.description} != {plugin.description}"
+            f"[italic red]Mismatched description: (in db) {plugin_in_db.description} != (plugin) {plugin.description}"
         )
         to_update = True
         database_property["Description"] = plugin.description
@@ -177,7 +177,7 @@ def update_funding(
 
     if (plugin_in_db.fundingUrl != plugin.fundingUrl) and plugin.fundingUrl:
         console.log(
-            f"[italic red]Mismatched fundingUrl: {plugin_in_db.fundingUrl} != {plugin.fundingUrl}"
+            f"[italic red]Mismatched fundingUrl: (in db) {plugin_in_db.fundingUrl} != (in plugin) {plugin.fundingUrl}"
         )
         to_update = True
         database_property["Funding URL"] = plugin.fundingUrl
@@ -201,7 +201,7 @@ def update_last_date(
 
     if plugin_in_db.last_commit_date != plugin.last_commit_date:
         console.log(
-            f"[italic red]Mismatched last_commit_date: {plugin_in_db.last_commit_date} != {plugin.last_commit_date}"
+            f"[italic red]Mismatched last_commit_date: (in db) {plugin_in_db.last_commit_date} != (plugin) {plugin.last_commit_date}"
         )
         to_update = True
         database_property["Last Commit Date"] = plugin.last_commit_date
