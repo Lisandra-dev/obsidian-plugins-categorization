@@ -222,7 +222,7 @@ def update_etag(
 
     if plugin_in_db.etag.replace('"', "") != plugin.etag.replace('"', ""):
         console.log(
-            f"[italic red]Mismatched etag: {plugin_in_db.etag} != {plugin.etag}"
+            f"[italic red]Mismatched etag: (in db) {plugin_in_db.etag.replace('"', "")} != (last tag) {plugin.etag}"
         )
         to_update = True
         database_property["ETAG"] = plugin.etag
@@ -247,7 +247,9 @@ def update_status(
         State.ARCHIVED,
         State.MAINTENANCE,
     ]:
-        console.log(f"[italic red]Mismatched status: {plugin_in_db.status} != {status}")
+        console.log(
+            f"[italic red]Mismatched status: (in db) {plugin_in_db.status} != (from plugin) {status}"
+        )
         to_update = True
         database_property["Status"] = str(status)
     must_update.append(to_update)
@@ -267,7 +269,7 @@ def plugin_repo(
 
     if (plugin_in_db.repo != plugin.repo) and plugin.repo:
         console.log(
-            f"[italic red]Mismatched repo: {plugin_in_db.repo} != {plugin.repo}"
+            f"[italic red]Mismatched repo: (in db) {plugin_in_db.repo} != (from plugin) {plugin.repo}"
         )
         to_update = True
         database_property["Github Link"] = f"https://github.com/{plugin.repo}"
@@ -293,7 +295,7 @@ def update_keywords(
 
     if keywords_list != auto_suggest_in_database:
         console.log(
-            f"[italic red]Mismatched auto-suggested categories : {auto_category} != {auto_suggest_in_database}"
+            f"[italic red]Mismatched auto-suggested categories : (suggested) {auto_category} != (in database) {auto_suggest_in_database}"
         )
         link_id, row_id = id
         update_links(seatable, link_id, auto_category, row_id)
