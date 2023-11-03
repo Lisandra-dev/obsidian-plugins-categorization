@@ -15,7 +15,14 @@ from database.update import update
 from dotenv import load_dotenv
 from get_plugins import read_plugin_json
 from github import Auth, Github
-from interface import EtagPlugins, PluginItems, Task_Info, UnInt, test_plugin
+from interface import (
+    DatabaseProperties,
+    EtagPlugins,
+    PluginItems,
+    Task_Info,
+    UnInt,
+    test_plugin,
+)
 from rich import print
 from rich.console import Console
 from rich.progress import Progress
@@ -92,13 +99,14 @@ def fetch_github_data(
 
 def track_plugins_update(  # noqa
     all_plugins: list[PluginItems],
-    db: pd.DataFrame,
-    base: Base,
-    keywords: pd.DataFrame,
+    databaseProperties: DatabaseProperties,  # noqa: N803
     link_id: str,
     archive: bool = False,
     new_only: bool = False,
 ) -> None:
+    db = databaseProperties.db
+    base = databaseProperties.base
+    keywords = databaseProperties.keywords
     with Progress() as progress:
         update_task = progress.add_task(
             "[bold green]Updating plugins", total=len(all_plugins)
@@ -182,8 +190,8 @@ def main(dev: bool, archive: bool, new: bool, force: bool) -> None:
 
     if dev:
         all_plugins.append(test_plugin)
-
-    track_plugins_update(all_plugins, db, base, keywords, link_id, archive, new)
+    db_properties = DatabaseProperties(db=db, base=base, keywords=keywords)
+    track_plugins_update(all_plugins, db_properties, link_id, archive, new)
     if not dev:
         track_plugin_deleted(console, all_plugins, db, base)
 

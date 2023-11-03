@@ -2,9 +2,11 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any, NamedTuple, Optional
 
+import pandas as pd
 from pydantic import BaseModel, ConfigDict
 from rich.console import Console
 from rich.progress import Progress, TaskID
+from seatable_api import Base
 
 type UnString = Optional[str]
 type UnDate = Optional[str | datetime]
@@ -84,3 +86,9 @@ test_plugin: PluginItems = PluginItems(
     etag="test",
     status=State.ACTIVE,
 )
+
+
+class DatabaseProperties(BaseModel):
+    db: pd.DataFrame
+    base: Base
+    keywords: pd.DataFrame
