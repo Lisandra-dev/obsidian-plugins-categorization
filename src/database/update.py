@@ -220,7 +220,7 @@ def update_etag(
         plugin_info.console,
     ]
 
-    if plugin_in_db.etag != plugin.etag:
+    if plugin_in_db.etag.replace('"', "") != plugin.etag.replace('"', ""):
         console.log(
             f"[italic red]Mismatched etag: {plugin_in_db.etag} != {plugin.etag}"
         )
