@@ -97,7 +97,7 @@ def fetch_github_data(
     return all_plugins
 
 
-def track_plugins_update(  # noqa
+def track_plugins_update(
     all_plugins: list[PluginItems],
     databaseProperties: DatabaseProperties,  # noqa: N803
     link_id: str,
