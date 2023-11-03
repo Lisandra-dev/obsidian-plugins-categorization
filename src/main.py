@@ -176,7 +176,9 @@ def main(dev: bool, archive: bool, new: bool, force: bool) -> None:
     db, base, commits_from_db = fetch_seatable_data(console, dev)
     keywords, link_id = get_keyword_to_category(base)
 
-    all_plugins = fetch_github_data(console, commits_from_db, max_length=max_length)
+    all_plugins = fetch_github_data(
+        console, commits_from_db, max_length=max_length, force=force
+    )
 
     if dev:
         all_plugins.append(test_plugin)
