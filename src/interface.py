@@ -89,6 +89,7 @@ test_plugin: PluginItems = PluginItems(
 
 
 class DatabaseProperties(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     db: pd.DataFrame
     base: Base
     keywords: pd.DataFrame
