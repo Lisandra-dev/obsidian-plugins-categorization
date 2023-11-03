@@ -74,7 +74,7 @@ def get_keyword_to_category(seatable: Base) -> tuple[pd.DataFrame, str]:
 
 def fetch_github_data(
     console: Console,
-    commits_from_db: list[EtagPlugins],
+    database: DatabaseProperties,
     max_length: UnInt = None,
     force: bool = False,
 ) -> list[PluginItems]:
@@ -83,6 +83,8 @@ def fetch_github_data(
         len_plugins = max_length
     console.log(f"Found {len_plugins} plugins on GitHub")
     all_plugins = []
+    commit_from_db = database.commit_date
+    nb_plugins = len(database.db)
     with Progress() as progress:
         plugin_progress = progress.add_task(
             "[bold green]Fetching data", total=len_plugins
@@ -91,7 +93,11 @@ def fetch_github_data(
         task_info = Task_Info(progress, plugin_progress)
         while not task_info.Progress.finished:
             all_plugins, task_info = read_plugin_json(
-                commits_from_db, task_info, max_length=max_length, force=force
+                commit_from_db,
+                task_info,
+                nb_plugins=nb_plugins,
+                max_length=max_length,
+                force=force,
             )  # noqa
     console.log(f"Fetched {len(all_plugins)} plugins")
     return all_plugins
@@ -183,15 +189,17 @@ def main(dev: bool, archive: bool, new: bool, force: bool) -> None:
 
     db, base, commits_from_db = fetch_seatable_data(console, dev)
     keywords, link_id = get_keyword_to_category(base)
+    database_properties = DatabaseProperties(
+        db=db, base=base, keywords=keywords, commit_date=commits_from_db
+    )
 
     all_plugins = fetch_github_data(
-        console, commits_from_db, max_length=max_length, force=force
+        console, database_properties, max_length=max_length, force=force
     )
 
     if dev:
         all_plugins.append(test_plugin)
-    db_properties = DatabaseProperties(db=db, base=base, keywords=keywords)
-    track_plugins_update(all_plugins, db_properties, link_id, archive, new)
+    track_plugins_update(all_plugins, database_properties, link_id, archive, new)
     if not dev:
         track_plugin_deleted(console, all_plugins, db, base)
 

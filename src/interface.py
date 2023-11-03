@@ -93,3 +93,4 @@ class DatabaseProperties(BaseModel):
     db: pd.DataFrame
     base: Base
     keywords: pd.DataFrame
+    commit_date: list[EtagPlugins]

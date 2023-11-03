@@ -134,44 +134,38 @@ def save_plugin(plugins: list[PluginItems], task_info: Task_Info) -> None:
 def read_plugin_json(
     commit_date: list[EtagPlugins],
     task_info: Task_Info,
+    nb_plugins: int,
     max_length: Optional[int] = None,
     force: bool = False,
 ) -> tuple[list[PluginItems], Task_Info]:
     """
     Read the json file and return a list of PluginItems
     """
-    # get creation date of the json file
 
     file_path = Path("plugins.json")
     if file_path.exists() and not force:
         creation_date = file_path.stat().st_mtime
+        data = json.load(file_path.open("r", encoding="utf-8"))
         now = datetime.now().timestamp()
-        # if the file is older than 1 day, we update it
+        error_message = None
         if now - creation_date > 86400:  # noqa: PLR2004
-            task_info.Progress.update(
-                task_info.Task, description="File too old : Fetching new data"
-            )
+            error_message = "File too old: Fetching new data"
+        elif len(data) == 0:
+            error_message = "File is empty: Fetching new data"
+        elif nb_plugins > len(data):
+            error_message = "File too short: new plugins added"
+        if error_message:
+            task_info.Progress.update(task_info.Task, description=error_message)
             plugins, task_info = get_raw_data(commit_date, task_info, max_length)
             save_plugin(plugins, task_info)
             return plugins, task_info
         else:
-            with file_path.open("r", encoding="utf-8") as f:
-                data = json.load(f)
-            # verify empty file
-            if len(data) == 0:
-                task_info.Progress.update(
-                    task_info.Task, description="File is empty : Fetching new data"
-                )
-                plugins, task_info = get_raw_data(commit_date, task_info, max_length)
-                save_plugin(plugins, task_info)
-                return plugins, task_info
-            else:
-                task_info.Progress.update(
-                    task_info.Task, description="File OK : Reading file"
-                )
-                plugins = [PluginItems(**x) for x in data]
-                task_info.Progress.remove_task(task_info.Task)
-                return plugins, task_info
+            task_info.Progress.update(
+                task_info.Task, description="File OK : Reading file"
+            )
+            plugins = [PluginItems(**x) for x in data]
+            task_info.Progress.remove_task(task_info.Task)
+            return plugins, task_info
     else:
         task_info.Progress.update(
             task_info.Task, description="File not found : Fetching new data"
