@@ -17,7 +17,7 @@ from interface import (
     UnDate,
     UnString,
 )
-from utils import convert_time
+from utils import convert_time, get_len_of_plugin
 
 
 def manifest(plugin: PluginItems) -> Manifest:
@@ -134,26 +134,27 @@ def save_plugin(plugins: list[PluginItems], task_info: Task_Info) -> None:
 def read_plugin_json(
     commit_date: list[EtagPlugins],
     task_info: Task_Info,
-    nb_plugins: int,
     max_length: Optional[int] = None,
     force: bool = False,
 ) -> tuple[list[PluginItems], Task_Info]:
     """
     Read the json file and return a list of PluginItems
     """
-
+    nb_plugins = get_len_of_plugin()
     file_path = Path("plugins.json")
     if file_path.exists() and not force:
         creation_date = file_path.stat().st_mtime
         data = json.load(file_path.open("r", encoding="utf-8"))
         now = datetime.now().timestamp()
         error_message = None
+        console = task_info.Progress.console
         if now - creation_date > 86400:  # noqa: PLR2004
             error_message = "File too old: Fetching new data"
         elif len(data) == 0:
             error_message = "File is empty: Fetching new data"
         elif nb_plugins > len(data):
             error_message = "File too short: new plugins added"
+        console.log(f"Reading {file_path} -- ", error_message)
         if error_message:
             task_info.Progress.update(task_info.Task, description=error_message)
             plugins, task_info = get_raw_data(commit_date, task_info, max_length)

@@ -84,7 +84,6 @@ def fetch_github_data(
     console.log(f"Found {len_plugins} plugins on GitHub")
     all_plugins = []
     commit_from_db = database.commit_date
-    nb_plugins = len(database.db)
     with Progress() as progress:
         plugin_progress = progress.add_task(
             "[bold green]Fetching data", total=len_plugins
@@ -95,7 +94,6 @@ def fetch_github_data(
             all_plugins, task_info = read_plugin_json(
                 commit_from_db,
                 task_info,
-                nb_plugins=nb_plugins,
                 max_length=max_length,
                 force=force,
             )  # noqa
