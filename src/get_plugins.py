@@ -155,7 +155,7 @@ def read_plugin_json(
         elif nb_plugins > len(data):
             error_message = "File too short: new plugins added"
         console.log(f"Reading {file_path} -- ", error_message)
-        if error_message:
+        if error_message is not None:
             task_info.Progress.update(task_info.Task, description=error_message)
             plugins, task_info = get_raw_data(commit_date, task_info, max_length)
             save_plugin(plugins, task_info)
