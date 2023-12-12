@@ -20,7 +20,7 @@ def translate_keywords_from_plugin(plugin: PluginItems, keywords: pd.DataFrame) 
 def new_keywords_list(
     database_property: dict[str, Any], new_keywords: list[Any]
 ) -> list:
-    if not database_property["Auto-Suggested Categories"]:
+    if not database_property.get("Auto-Suggested Categories", None):
         return new_keywords
     else:
         row_ids = set(
@@ -38,7 +38,7 @@ def add_new_keywords(
 ) -> list:
     new_category = translate_keywords_from_plugin(plugin, keywords)
     category_to_add = []
-    if not database_property["Auto-Suggested Categories"]:
+    if not database_property.get("Auto-Suggested Categories", None):
         return new_category
     else:  # append ?
         row_ids = set(
