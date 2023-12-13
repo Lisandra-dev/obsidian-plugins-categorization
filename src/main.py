@@ -3,7 +3,7 @@ import datetime
 import os
 
 import pandas as pd
-from database.add_new import add_new, auto_suggest_tags
+from database.add_new import add_new
 from database.automatic_category import get_linked_table
 from database.search import (
     delete_duplicate,
@@ -138,8 +138,7 @@ def track_plugins_update(
                 task_info.Progress.update(
                     task_info.Task, description=f"[underline blue]Adding {plugin.name}"
                 )
-                db_entry = add_new(plugin, base)
-                auto_suggest_tags(plugin, db_entry, keywords, db, base, link_id)
+                add_new(plugin, base, keywords, link_id)
                 task_info.Progress.update(task_info.Task, advance=1)
 
 

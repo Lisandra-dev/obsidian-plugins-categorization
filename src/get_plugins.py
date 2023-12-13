@@ -97,7 +97,7 @@ def get_repository_information(
         url = f"https://api.github.com/repos/{owner}/{repo}/commits"
         header = {
             "Accept": "application/vnd.github.v3+json",
-            "Authorization": f"Bearer {os.getenv("GITHUB_TOKEN")}",
+            "Authorization": f"Bearer {os.getenv('GITHUB_TOKEN')}",
             "X-GitHub-Api-Version": "2022-11-28",
         }
         if etag:
