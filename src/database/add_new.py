@@ -1,16 +1,14 @@
-from asyncio import streams
-from typing import Any
-
 import pandas as pd
 from interface import PluginItems, State
 from seatable_api import Base
 from utils import convert_time, generate_activity_tag
 
 from database import automatic_category
-from database.search import get_plugin_in_database
 
 
-def add_new(plugin: PluginItems, seatable: Base, keywords: pd.DataFrame, linked_id: str) -> None:
+def add_new(
+    plugin: PluginItems, seatable: Base, keywords: pd.DataFrame, linked_id: str
+) -> None:
     new_database_entry = {
         "ID": plugin.id,
         "Name": plugin.name,
@@ -27,8 +25,9 @@ def add_new(plugin: PluginItems, seatable: Base, keywords: pd.DataFrame, linked_
     }
 
     rep = seatable.append_row("Plugins", new_database_entry)
-    if (not rep):
+    if not rep:
         return
-    automatic = automatic_category.add_new_keywords(new_database_entry, plugin, keywords)
+    automatic = automatic_category.add_new_keywords(
+        new_database_entry, plugin, keywords
+    )
     automatic_category.update_links(seatable, linked_id, automatic, rep["_id"])
-
