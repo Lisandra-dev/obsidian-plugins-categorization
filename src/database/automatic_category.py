@@ -32,6 +32,14 @@ def new_keywords_list(
             if keyword["row_id"] not in row_ids:
                 database_property["Auto-Suggested Categories"].append(keyword)
                 row_ids.add(keyword["row_id"])
+        # remove deleted keywords
+        for row_id in row_ids:
+            if row_id not in [item["row_id"] for item in new_keywords]:
+                database_property["Auto-Suggested Categories"] = [
+                    item
+                    for item in database_property["Auto-Suggested Categories"]
+                    if item["row_id"] != row_id
+                ]
         return database_property["Auto-Suggested Categories"]
 
 
