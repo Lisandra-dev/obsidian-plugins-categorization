@@ -11,7 +11,9 @@ def translate_keywords_from_plugin(plugin: PluginItems, keywords: pd.DataFrame) 
     name = plugin.name
     plugin_keywords = []
     for index, row in keywords.iterrows():
-        if row.Keyword in description.lower() or row.Keyword.lower() in name.lower():
+        if row.Keyword in description.lower().replace(
+            "obsidian", ""
+        ) or row.Keyword.lower() in name.lower().replace("obsidian", ""):
             plugin_keywords += row["Category Record"]
     # remove duplicate in plugin_keywords
     return unique_category(plugin_keywords)
