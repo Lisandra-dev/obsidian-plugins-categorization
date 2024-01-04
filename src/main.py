@@ -200,8 +200,6 @@ def main(dev: bool, archive: bool, new: bool, force: bool) -> None:
     track_plugins_update(all_plugins, database_properties, link_id, archive, new)
     if not dev:
         track_plugin_deleted(console, all_plugins, db, base)
-
-    if not dev:
         delete_duplicate(db, base, console)
     else:  # find len of duplicate
         duplicate = db[db.duplicated("ID", keep=False)]

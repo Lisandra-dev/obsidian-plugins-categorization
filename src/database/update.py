@@ -291,14 +291,17 @@ def update_keywords(
     ]
     to_update = False
     auto_category: list[Any] = add_new_keywords(database_property, plugin, keywords)
+    if len(auto_category) == 0:
+        return to_update
+
     keywords_list: list[Any] = new_keywords_list(database_property, auto_category)
 
-    if keywords_list != auto_suggest_in_database:
+    if len(keywords_list) > 0 and keywords_list != auto_suggest_in_database:
         console.log(
-            f"[italic red]Mismatched auto-suggested categories : (suggested) {auto_category} != (in database) {auto_suggest_in_database}"
+            f"[italic red]Mismatched auto-suggested categories : (suggested) {keywords_list} != (in database) {auto_suggest_in_database}"
         )
         link_id, row_id = id
-        update_links(seatable, link_id, auto_category, row_id)
+        update_links(seatable, link_id, keywords_list, row_id)
         to_update = True
     return to_update
 
