@@ -77,7 +77,7 @@ class RepositoryInformationDate(BaseModel):
 test_plugin: PluginItems = PluginItems(
     id="mara-test-database",
     name="mara DATABASE TEST",
-    description="kindle gpt keyboard",
+    description="kindle keyboard",
     repo="test",
     author="test",
     fundingUrl="test",

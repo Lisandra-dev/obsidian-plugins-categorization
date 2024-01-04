@@ -27,7 +27,5 @@ def add_new(
     rep = seatable.append_row("Plugins", new_database_entry)
     if not rep:
         return
-    automatic = automatic_category.add_new_keywords(
-        new_database_entry, plugin, keywords
-    )
+    automatic = automatic_category.translate_keywords_from_plugin(plugin, keywords)
     automatic_category.update_links(seatable, linked_id, automatic, rep["_id"])

@@ -9,7 +9,12 @@ from utils import convert_time, generate_activity_tag
 
 from database.search import get_plugin_in_database
 
-from .automatic_category import add_new_keywords, new_keywords_list, update_links
+from .automatic_category import (
+    deleted_keywords,
+    remove_duplicate,
+    translate_keywords_from_plugin,
+    update_links,
+)
 
 
 def update(  # noqa
@@ -290,18 +295,28 @@ def update_keywords(
         plugin_properties.console,
     ]
     to_update = False
-    auto_category: list[Any] = add_new_keywords(database_property, plugin, keywords)
-    if len(auto_category) == 0:
+    removed_keywords = deleted_keywords(
+        database_property,
+        keywords,
+        plugin,
+    )
+    keywords_list: list[Any] = translate_keywords_from_plugin(plugin, keywords)
+
+    if len(keywords_list) == 0 and len(removed_keywords) == 0:
         return to_update
-
-    keywords_list: list[Any] = new_keywords_list(database_property, auto_category)
-
+    # remove duplicate in auto_suggest_in_database
+    auto_suggest_in_database = remove_duplicate(auto_suggest_in_database)
+    # sort keywords_list and auto_suggest_in_database
+    keywords_list = sorted(keywords_list, key=lambda x: x["row_id"])
+    auto_suggest_in_database = sorted(
+        auto_suggest_in_database, key=lambda x: x["row_id"]
+    )
     if len(keywords_list) > 0 and keywords_list != auto_suggest_in_database:
         console.log(
-            f"[italic red]Mismatched auto-suggested categories : (suggested) {keywords_list} != (in database) {auto_suggest_in_database}"
+            f"[italic red]Mismatched auto-suggested categories : (suggested)[/italic red]\n {keywords_list} [italic red]!= (in database)[/italic red] {auto_suggest_in_database}"
         )
         link_id, row_id = id
-        update_links(seatable, link_id, keywords_list, row_id)
+        update_links(seatable, link_id, keywords_list, row_id, removed_keywords)
         to_update = True
     return to_update
 
