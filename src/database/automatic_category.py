@@ -8,9 +8,9 @@ from utils import unique_category
 
 def translate_keywords_from_plugin(plugin: PluginItems, keywords: pd.DataFrame) -> list:
     description = (
-        plugin.description.replace("obsidian", "").replace("-", " ").lower().split(" ")
+        plugin.description.lower().replace("obsidian", "").replace("-", " ").split(" ")
     )
-    name = plugin.name.replace("obsidian", "").replace("-", " ").lower().split(" ")
+    name = plugin.name.lower().replace("obsidian", "").replace("-", " ").split(" ")
     plugin_keywords = []
     for index, row in keywords.iterrows():
         if row.Keyword.lower() in description or row.Keyword.lower() in name:
